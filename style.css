@@ -95,3 +95,23 @@ button:hover {
         margin-right: auto;
     }
 }
+.event-row {
+    max-width: 1000px;
+    margin: 4px auto;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 8px;
+    text-align: left;
+    font-size: 14px;
+    box-shadow: 0 0 4px rgba(0,0,0,0.08);
+}
+
+.event-icon {
+    display: inline-block;
+    min-width: 28px;
+    font-weight: bold;
+}
+
+.event-text {
+    vertical-align: middle;
+}
