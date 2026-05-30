@@ -1,50 +1,91 @@
-const events = [
-    {
-        inning: "Top 1",
-        batter: "Jeremy Peña",
-        text: "Ball 1",
-        atBat: 1
-    },
-    {
-        inning: "Top 1",
-        batter: "Jeremy Peña",
-        text: "Foul ball",
-        atBat: 1
-    },
-    {
-        inning: "Top 1",
-        batter: "Jeremy Peña",
-        text: "Singles to left field",
-        atBat: 1
-    },
-    {
-        inning: "Top 1",
-        batter: "Isaac Paredes",
-        text: "Called strike",
-        atBat: 2
-    },
-    {
-        inning: "Top 1",
-        batter: "Isaac Paredes",
-        text: "Strikes out swinging",
-        atBat: 2
-    },
-    {
-        inning: "Top 1",
-        batter: "Yordan Alvarez",
-        text: "Doubles to right field",
-        atBat: 3
-    }
-];
+const ASTROS_TEAM_ID = 117;
+const GAME_DATE = "2026-05-29";
 
+let events = [];
 let currentIndex = 0;
+
+async function loadGame() {
+    document.getElementById("event").innerHTML = "Loading Astros game...";
+
+    const scheduleUrl =
+        `https://statsapi.mlb.com/api/v1/schedule?sportId=1&teamId=${ASTROS_TEAM_ID}&date=${GAME_DATE}`;
+
+    const scheduleResponse = await fetch(scheduleUrl);
+    const scheduleData = await scheduleResponse.json();
+
+    const games = scheduleData.dates?.[0]?.games || [];
+
+    if (games.length === 0) {
+        document.getElementById("event").innerHTML =
+            "No Astros game found for that date.";
+        return;
+    }
+
+    const gamePk = games[0].gamePk;
+
+    const feedUrl =
+        `https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`;
+
+    const feedResponse = await fetch(feedUrl);
+    const feedData = await feedResponse.json();
+
+    buildEvents(feedData);
+
+    if (events.length === 0) {
+        document.getElementById("event").innerHTML =
+            "No events found.";
+        return;
+    }
+
+    currentIndex = 0;
+    showEvent();
+}
+
+function buildEvents(data) {
+    events = [];
+
+    const plays = data.liveData.plays.allPlays;
+
+    plays.forEach((play, playNumber) => {
+        const inning = play.about.inning;
+        const half = play.about.halfInning.toUpperCase();
+        const batter = play.matchup.batter.fullName;
+        const pitcher = play.matchup.pitcher.fullName;
+
+        play.playEvents.forEach(event => {
+            const desc = event.details?.description;
+
+            if (!desc) return;
+
+            events.push({
+                inning: `${half} ${inning}`,
+                batter: batter,
+                pitcher: pitcher,
+                text: desc,
+                atBat: playNumber
+            });
+        });
+
+        const resultText = play.result?.description;
+
+        if (resultText) {
+            events.push({
+                inning: `${half} ${inning}`,
+                batter: batter,
+                pitcher: pitcher,
+                text: `RESULT: ${resultText}`,
+                atBat: playNumber
+            });
+        }
+    });
+}
 
 function showEvent() {
     const event = events[currentIndex];
 
     document.getElementById("event").innerHTML = `
         <h2>${event.inning}</h2>
-        <h3>${event.batter}</h3>
+        <h3>${event.pitcher} vs ${event.batter}</h3>
         <p>${event.text}</p>
         <small>Event ${currentIndex + 1} of ${events.length}</small>
     `;
@@ -90,4 +131,4 @@ function nextInning() {
     showEvent();
 }
 
-showEvent();
+loadGame();
