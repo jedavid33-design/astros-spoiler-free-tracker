@@ -1,9 +1,40 @@
 const ASTROS_TEAM_ID = 117;
-const GAME_DATE = "2026-05-29";
-const SAVE_KEY = `astros-tracker-${GAME_DATE}`;
+
+let GAME_DATE = "2026-05-29";
+let SAVE_KEY = `astros-tracker-${GAME_DATE}`;
 
 let events = [];
 let currentIndex = 0;
+
+function setGameDate(newDate) {
+    GAME_DATE = newDate;
+    SAVE_KEY = `astros-tracker-${GAME_DATE}`;
+    events = [];
+    currentIndex = 0;
+    loadGame();
+}
+
+function loadToday() {
+    const today = new Date().toISOString().split("T")[0];
+    setGameDate(today);
+}
+
+function loadYesterday() {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    setGameDate(yesterday.toISOString().split("T")[0]);
+}
+
+function loadPickedDate() {
+    const pickedDate = document.getElementById("gameDate").value;
+
+    if (!pickedDate) {
+        alert("Pick a date first.");
+        return;
+    }
+
+    setGameDate(pickedDate);
+}
 
 async function loadGame() {
     document.getElementById("event").innerHTML = "Loading Astros game...";
