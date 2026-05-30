@@ -65,18 +65,7 @@ async function loadGame() {
 
     buildEvents(feedData);
 
-    const saved = localStorage.getItem(SAVE_KEY);
 
-    if (saved) {
-        const resume = confirm("Resume saved progress for this game?");
-
-        if (resume) {
-            revealedIndexes = JSON.parse(saved);
-            redrawFeed();
-        }
-    }
-
-    updateStatus();
 }
 
 function buildEvents(data) {
