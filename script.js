@@ -54,8 +54,6 @@ function nextEvent() {
     if (currentIndex < events.length - 1) {
         currentIndex++;
         showEvent();
-    } else {
-        document.getElementById("event").innerHTML += "<p>End of events.</p>";
     }
 }
 
@@ -79,5 +77,17 @@ function nextAtBat() {
     showEvent();
 }
 
-// Show the first event when the page loads
+function nextInning() {
+    const currentInning = events[currentIndex].inning;
+
+    while (
+        currentIndex < events.length - 1 &&
+        events[currentIndex].inning === currentInning
+    ) {
+        currentIndex++;
+    }
+
+    showEvent();
+}
+
 showEvent();
