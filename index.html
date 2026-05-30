@@ -9,8 +9,6 @@
 
     <h1>⚾ Astros Spoiler-Free Tracker ⚾</h1>
 
-    <p>Welcome to the browser version!</p>
-
     <div>
     <button onclick="loadToday()">Today's Game</button>
     <button onclick="loadYesterday()">Yesterday's Game</button>
@@ -37,11 +35,17 @@
         Next Inning
     </button>
 
-    <div id="event">
-        Game data will appear here.
-    </div>
+    <div id="status">
+    Loading...
+</div>
 
-    <script src="script.js?v=4"></script>
+<div id="batterInfo">
+    Batter info will appear here.
+</div>
+
+<div id="eventList"></div>
+
+    <script src="script.js?v=5"></script>
 
 </body>
 </html>
