@@ -38,14 +38,24 @@ button:hover {
 }
 
 #batterInfo {
-    margin-top: 15px;
-    padding: 15px;
+    display: block;
+    width: 100%;
+    max-width: 1000px;
+    margin: 15px auto;
+    padding: 18px;
     background: white;
-    border-left: 4px solid #EB6E1F;
-    border-radius: 10px;
+    color: #002D62;
+    border-left: 6px solid #EB6E1F;
+    border-radius: 12px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
     font-size: 18px;
     line-height: 1.5;
+    text-align: center;
+    cursor: pointer;
+}
+
+#batterInfo:hover {
+    opacity: 0.95;
 }
 
 #eventList {
