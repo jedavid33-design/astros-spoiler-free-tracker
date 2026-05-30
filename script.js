@@ -212,19 +212,36 @@ function updateStatus() {
     `;
 }
 
+function getEventIcon(event) {
+    const text = event.text.toLowerCase();
+
+    if (event.pitchNumber) {
+        const numbers = ["", "①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨"];
+        return numbers[event.pitchNumber] || `P${event.pitchNumber}`;
+    }
+
+    if (text.includes("steals")) return "🏃";
+    if (text.includes("pickoff")) return "⚠️";
+    if (text.includes("homers") || text.includes("home run")) return "💥";
+    if (text.includes("pitching change")) return "🔁";
+    if (text.includes("defensive")) return "🧤";
+
+    return "•";
+}
+
 function addEventCard(index) {
     const event = events[index];
+    const icon = getEventIcon(event);
 
-    const card = document.createElement("div");
-    card.className = "event-card";
+    const row = document.createElement("div");
+    row.className = "event-row";
 
-    card.innerHTML = `
-        <strong>${event.inning}</strong><br>
-        ${event.pitcher} vs ${event.batter}<br>
-        ${event.text}
+    row.innerHTML = `
+        <span class="event-icon">${icon}</span>
+        <span class="event-text">${event.text}</span>
     `;
 
-    document.getElementById("eventList").prepend(card);
+    document.getElementById("eventList").prepend(row);
 }
 
 function redrawFeed() {
