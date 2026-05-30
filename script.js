@@ -1,5 +1,6 @@
 const ASTROS_TEAM_ID = 117;
 const GAME_DATE = "2026-05-29";
+const SAVE_KEY = `astros-tracker-${GAME_DATE}`;
 
 let events = [];
 let currentIndex = 0;
@@ -31,13 +32,18 @@ async function loadGame() {
 
     buildEvents(feedData);
 
-    if (events.length === 0) {
-        document.getElementById("event").innerHTML =
-            "No events found.";
-        return;
+    const savedIndex = localStorage.getItem(SAVE_KEY);
+
+    if (savedIndex !== null) {
+        const resume = confirm(
+            `Resume from Event ${Number(savedIndex) + 1} of ${events.length}?`
+        );
+
+        currentIndex = resume ? Number(savedIndex) : 0;
+    } else {
+        currentIndex = 0;
     }
 
-    currentIndex = 0;
     showEvent();
 }
 
@@ -80,8 +86,14 @@ function buildEvents(data) {
     });
 }
 
+function saveProgress() {
+    localStorage.setItem(SAVE_KEY, currentIndex);
+}
+
 function showEvent() {
     const event = events[currentIndex];
+
+    saveProgress();
 
     document.getElementById("event").innerHTML = `
         <h2>${event.inning}</h2>
