@@ -36,7 +36,7 @@ function loadPickedDate() {
     setGameDate(pickedDate);
 }
 
-async function loadGame() {
+async function loadGame(askResume = true) {
     document.getElementById("status").innerHTML = "Loading Astros game...";
     document.getElementById("batterInfo").innerHTML = "";
     document.getElementById("eventList").innerHTML = "";
@@ -67,8 +67,8 @@ async function loadGame() {
 
     const saved = localStorage.getItem(SAVE_KEY);
 
-    if (saved) {
-        const resume = confirm("Resume saved progress for this game?");
+if (askResume && saved) {
+    const resume = confirm("Resume saved progress for this game?");
 
         if (resume) {
             try {
@@ -315,3 +315,7 @@ function nextInning() {
 }
 
 loadGame();
+
+setInterval(() => {
+    loadGame(false);
+}, 15000);
