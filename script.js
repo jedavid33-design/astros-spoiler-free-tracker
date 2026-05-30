@@ -65,7 +65,27 @@ async function loadGame() {
 
     buildEvents(feedData);
 
+    const saved = localStorage.getItem(SAVE_KEY);
 
+    if (saved) {
+        const resume = confirm("Resume saved progress for this game?");
+
+        if (resume) {
+            try {
+                const parsed = JSON.parse(saved);
+
+                if (Array.isArray(parsed)) {
+                    revealedIndexes = parsed;
+                    redrawFeed();
+                    return;
+                }
+            } catch {
+                localStorage.removeItem(SAVE_KEY);
+            }
+        }
+    }
+
+    updateStatus();
 }
 
 function buildEvents(data) {
@@ -109,7 +129,9 @@ function buildEvents(data) {
                 balls: play.count?.balls,
                 strikes: play.count?.strikes,
                 outs: play.count?.outs,
-                pitchNumber: null
+                pitchNumber: null,
+                awayScore: play.result?.awayScore,
+                homeScore: play.result?.homeScore
             });
         }
     });
@@ -127,11 +149,32 @@ function getCurrentIndex() {
     return revealedIndexes[revealedIndexes.length - 1];
 }
 
+function getSpoilerFreeScore() {
+    let awayScore = 0;
+    let homeScore = 0;
+
+    revealedIndexes.forEach(index => {
+        const event = events[index];
+
+        if (
+            event.awayScore !== undefined &&
+            event.homeScore !== undefined
+        ) {
+            awayScore = event.awayScore;
+            homeScore = event.homeScore;
+        }
+    });
+
+    return { awayScore, homeScore };
+}
+
 function updateStatus() {
     const currentIndex = getCurrentIndex();
+    const score = getSpoilerFreeScore();
 
     document.getElementById("status").innerHTML = `
         <strong>Date:</strong> ${GAME_DATE}<br>
+        <strong>Score:</strong> Away ${score.awayScore} - Home ${score.homeScore}<br>
         <strong>Revealed:</strong> ${revealedIndexes.length} events<br>
         <strong>Total Events:</strong> ${events.length}
     `;
