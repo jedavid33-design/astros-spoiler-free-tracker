@@ -11,6 +11,16 @@
 
     <p>Welcome to the browser version!</p>
 
+    <div>
+    <button onclick="loadToday()">Today's Game</button>
+    <button onclick="loadYesterday()">Yesterday's Game</button>
+
+    <br><br>
+
+    <input type="date" id="gameDate">
+    <button onclick="loadPickedDate()">Load Date</button>
+</div>
+
     <button onclick="previousEvent()">
         Previous Event
     </button>
@@ -31,7 +41,7 @@
         Game data will appear here.
     </div>
 
-    <script src="script.js?v=3"></script>
+    <script src="script.js?v=4"></script>
 
 </body>
 </html>
