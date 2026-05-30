@@ -1,27 +1,83 @@
 const events = [
-    "Top 1 - Jeremy Peña takes ball one.",
-    "Top 1 - Jeremy Peña fouls it away.",
-    "Top 1 - Jeremy Peña singles to left.",
-    "Top 1 - Isaac Paredes strikes out.",
-    "Top 1 - Yordan Alvarez doubles."
+    {
+        inning: "Top 1",
+        batter: "Jeremy Peña",
+        text: "Ball 1",
+        atBat: 1
+    },
+    {
+        inning: "Top 1",
+        batter: "Jeremy Peña",
+        text: "Foul ball",
+        atBat: 1
+    },
+    {
+        inning: "Top 1",
+        batter: "Jeremy Peña",
+        text: "Singles to left field",
+        atBat: 1
+    },
+    {
+        inning: "Top 1",
+        batter: "Isaac Paredes",
+        text: "Called strike",
+        atBat: 2
+    },
+    {
+        inning: "Top 1",
+        batter: "Isaac Paredes",
+        text: "Strikes out swinging",
+        atBat: 2
+    },
+    {
+        inning: "Top 1",
+        batter: "Yordan Alvarez",
+        text: "Doubles to right field",
+        atBat: 3
+    }
 ];
 
 let currentIndex = 0;
 
+function showEvent() {
+    const event = events[currentIndex];
+
+    document.getElementById("event").innerHTML = `
+        <h2>${event.inning}</h2>
+        <h3>${event.batter}</h3>
+        <p>${event.text}</p>
+        <small>Event ${currentIndex + 1} of ${events.length}</small>
+    `;
+}
+
 function nextEvent() {
-    if (currentIndex < events.length) {
-        document.getElementById("event").innerHTML =
-            events[currentIndex];
+    if (currentIndex < events.length - 1) {
         currentIndex++;
+        showEvent();
+    } else {
+        document.getElementById("event").innerHTML += "<p>End of events.</p>";
     }
 }
 
 function previousEvent() {
-    if (currentIndex > 1) {
+    if (currentIndex > 0) {
         currentIndex--;
-        currentIndex--;
-        document.getElementById("event").innerHTML =
-            events[currentIndex];
-        currentIndex++;
+        showEvent();
     }
 }
+
+function nextAtBat() {
+    const currentAtBat = events[currentIndex].atBat;
+
+    while (
+        currentIndex < events.length - 1 &&
+        events[currentIndex].atBat === currentAtBat
+    ) {
+        currentIndex++;
+    }
+
+    showEvent();
+}
+
+// Show the first event when the page loads
+showEvent();
