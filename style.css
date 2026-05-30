@@ -9,17 +9,17 @@ body {
 
 h1 {
     color: #EB6E1F;
-    font-size: 42px;
+    font-size: 34px;
 }
 
 button {
-    padding: 14px 22px;
+    padding: 12px 18px
     margin: 5px;
     border: none;
     border-radius: 8px;
     background-color: #002D62;
     color: white;
-    font-size: 18px;
+    font-size: 16px;
     cursor: pointer;
 }
 
@@ -33,7 +33,7 @@ button:hover {
     background: white;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    font-size: 20px;
+    font-size: 16px;
     line-height: 1.5;
 }
 
@@ -44,7 +44,7 @@ button:hover {
     border-left: 4px solid #EB6E1F;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    font-size: 22px;
+    font-size: 18px;
     line-height: 1.5;
 }
 
@@ -59,12 +59,12 @@ button:hover {
     margin-bottom: 10px;
     text-align: left;
     box-shadow: 0 0 5px rgba(0,0,0,0.1);
-    font-size: 18px;
+    font-size: 15px;
 }
 
 .event-card h3 {
     margin: 0 0 8px 0;
-    font-size: 22px;
+    font-size: 15px;
 }
 
 .event-card p {
