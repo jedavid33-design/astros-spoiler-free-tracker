@@ -37,9 +37,11 @@ function loadPickedDate() {
 }
 
 async function loadGame(askResume = true) {
+    if (askResume) {
     document.getElementById("status").innerHTML = "Loading Astros game...";
     document.getElementById("batterInfo").innerHTML = "";
     document.getElementById("eventList").innerHTML = "";
+}
 
     const scheduleUrl =
         `https://statsapi.mlb.com/api/v1/schedule?sportId=1&teamId=${ASTROS_TEAM_ID}&date=${GAME_DATE}`;
