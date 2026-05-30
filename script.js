@@ -4,13 +4,13 @@ let GAME_DATE = "2026-05-29";
 let SAVE_KEY = `astros-tracker-${GAME_DATE}`;
 
 let events = [];
-let currentIndex = 0;
+let revealedIndexes = [];
 
 function setGameDate(newDate) {
     GAME_DATE = newDate;
     SAVE_KEY = `astros-tracker-${GAME_DATE}`;
     events = [];
-    currentIndex = 0;
+    revealedIndexes = [];
     loadGame();
 }
 
@@ -37,7 +37,9 @@ function loadPickedDate() {
 }
 
 async function loadGame() {
-    document.getElementById("event").innerHTML = "Loading Astros game...";
+    document.getElementById("status").innerHTML = "Loading Astros game...";
+    document.getElementById("batterInfo").innerHTML = "";
+    document.getElementById("eventList").innerHTML = "";
 
     const scheduleUrl =
         `https://statsapi.mlb.com/api/v1/schedule?sportId=1&teamId=${ASTROS_TEAM_ID}&date=${GAME_DATE}`;
@@ -48,7 +50,7 @@ async function loadGame() {
     const games = scheduleData.dates?.[0]?.games || [];
 
     if (games.length === 0) {
-        document.getElementById("event").innerHTML =
+        document.getElementById("status").innerHTML =
             "No Astros game found for that date.";
         return;
     }
@@ -63,19 +65,18 @@ async function loadGame() {
 
     buildEvents(feedData);
 
-    const savedIndex = localStorage.getItem(SAVE_KEY);
+    const saved = localStorage.getItem(SAVE_KEY);
 
-    if (savedIndex !== null) {
-        const resume = confirm(
-            `Resume from Event ${Number(savedIndex) + 1} of ${events.length}?`
-        );
+    if (saved) {
+        const resume = confirm("Resume saved progress for this game?");
 
-        currentIndex = resume ? Number(savedIndex) : 0;
-    } else {
-        currentIndex = 0;
+        if (resume) {
+            revealedIndexes = JSON.parse(saved);
+            redrawFeed();
+        }
     }
 
-    showEvent();
+    updateStatus();
 }
 
 function buildEvents(data) {
@@ -99,7 +100,11 @@ function buildEvents(data) {
                 batter: batter,
                 pitcher: pitcher,
                 text: desc,
-                atBat: playNumber
+                atBat: playNumber,
+                balls: event.count?.balls,
+                strikes: event.count?.strikes,
+                outs: event.count?.outs,
+                pitchNumber: event.pitchNumber
             });
         });
 
@@ -111,67 +116,170 @@ function buildEvents(data) {
                 batter: batter,
                 pitcher: pitcher,
                 text: `RESULT: ${resultText}`,
-                atBat: playNumber
+                atBat: playNumber,
+                balls: play.count?.balls,
+                strikes: play.count?.strikes,
+                outs: play.count?.outs,
+                pitchNumber: null
             });
         }
     });
 }
 
 function saveProgress() {
-    localStorage.setItem(SAVE_KEY, currentIndex);
+    localStorage.setItem(SAVE_KEY, JSON.stringify(revealedIndexes));
 }
 
-function showEvent() {
+function getCurrentIndex() {
+    if (revealedIndexes.length === 0) {
+        return -1;
+    }
+
+    return revealedIndexes[revealedIndexes.length - 1];
+}
+
+function updateStatus() {
+    const currentIndex = getCurrentIndex();
+
+    document.getElementById("status").innerHTML = `
+        <strong>Date:</strong> ${GAME_DATE}<br>
+        <strong>Revealed:</strong> ${revealedIndexes.length} events<br>
+        <strong>Total Events:</strong> ${events.length}
+    `;
+
+    if (currentIndex === -1) {
+        document.getElementById("batterInfo").innerHTML =
+            "Press Next Event to begin.";
+        return;
+    }
+
     const event = events[currentIndex];
 
-    saveProgress();
+    const countText =
+        event.balls !== undefined && event.strikes !== undefined
+            ? `${event.balls}-${event.strikes}`
+            : "N/A";
 
-    document.getElementById("event").innerHTML = `
-        <h2>${event.inning}</h2>
-        <h3>${event.pitcher} vs ${event.batter}</h3>
-        <p>${event.text}</p>
-        <small>Event ${currentIndex + 1} of ${events.length}</small>
+    const outsText =
+        event.outs !== undefined
+            ? `${event.outs} out(s)`
+            : "N/A";
+
+    const pitchText =
+        event.pitchNumber
+            ? `Pitch #${event.pitchNumber}`
+            : "Plate appearance result";
+
+    document.getElementById("batterInfo").innerHTML = `
+        <strong>${event.inning}</strong><br>
+        <strong>${event.pitcher}</strong> vs <strong>${event.batter}</strong><br>
+        Count: ${countText} | ${outsText}<br>
+        ${pitchText}
     `;
 }
 
+function addEventCard(index) {
+    const event = events[index];
+
+    const card = document.createElement("div");
+    card.className = "event-card";
+
+    card.innerHTML = `
+        <strong>${event.inning}</strong><br>
+        ${event.pitcher} vs ${event.batter}<br>
+        ${event.text}
+    `;
+
+    document.getElementById("eventList").prepend(card);
+}
+
+function redrawFeed() {
+    document.getElementById("eventList").innerHTML = "";
+
+    revealedIndexes.forEach(index => {
+        addEventCard(index);
+    });
+
+    updateStatus();
+}
+
+function revealIndex(index) {
+    revealedIndexes.push(index);
+    addEventCard(index);
+    saveProgress();
+    updateStatus();
+}
+
 function nextEvent() {
-    if (currentIndex < events.length - 1) {
-        currentIndex++;
-        showEvent();
+    const currentIndex = getCurrentIndex();
+    const nextIndex = currentIndex + 1;
+
+    if (nextIndex < events.length) {
+        revealIndex(nextIndex);
     }
 }
 
 function previousEvent() {
-    if (currentIndex > 0) {
-        currentIndex--;
-        showEvent();
+    if (revealedIndexes.length === 0) {
+        return;
     }
+
+    revealedIndexes.pop();
+
+    const list = document.getElementById("eventList");
+
+    if (list.firstChild) {
+        list.removeChild(list.firstChild);
+    }
+
+    saveProgress();
+    updateStatus();
 }
 
 function nextAtBat() {
-    const currentAtBat = events[currentIndex].atBat;
+    const currentIndex = getCurrentIndex();
 
-    while (
-        currentIndex < events.length - 1 &&
-        events[currentIndex].atBat === currentAtBat
-    ) {
-        currentIndex++;
+    if (currentIndex === -1) {
+        nextEvent();
+        return;
     }
 
-    showEvent();
+    const currentAtBat = events[currentIndex].atBat;
+    let nextIndex = currentIndex + 1;
+
+    while (
+        nextIndex < events.length &&
+        events[nextIndex].atBat === currentAtBat
+    ) {
+        nextIndex++;
+    }
+
+    if (nextIndex < events.length) {
+        revealIndex(nextIndex);
+    }
 }
 
 function nextInning() {
-    const currentInning = events[currentIndex].inning;
+    const currentIndex = getCurrentIndex();
 
-    while (
-        currentIndex < events.length - 1 &&
-        events[currentIndex].inning === currentInning
-    ) {
-        currentIndex++;
+    if (currentIndex === -1) {
+        nextEvent();
+        return;
     }
 
-    showEvent();
+    const currentInning = events[currentIndex].inning;
+    let nextIndex = currentIndex + 1;
+
+    while (
+        nextIndex < events.length &&
+        events[nextIndex].inning === currentInning
+    ) {
+        nextIndex++;
+    }
+
+    if (nextIndex < events.length) {
+        revealIndex(nextIndex);
+    }
 }
 
 loadGame();
