@@ -122,17 +122,18 @@ button:hover {
 }
 
 .matchup-line {
-    font-size: 18px;
+    font-size: 16px;
     margin-bottom: 10px;
 }
 
 .count-line {
     display: flex;
     justify-content: center;
-    gap: 15;
-    font-size: 27px;
+    gap: 27px;      /* was 30 */
+    font-size: 18px; /* was 20 */
     font-weight: bold;
 }
+
 .scoreboard {
     width: 260px;
     margin: 0 auto;
