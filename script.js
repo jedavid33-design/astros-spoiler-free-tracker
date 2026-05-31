@@ -106,10 +106,6 @@ function buildEvents(data) {
 
             if (!desc) return;
 
-            const desc = event.details?.description;
-
-if (!desc) return;
-
 const lowerDesc = desc.toLowerCase();
 
 const hiddenEvents = [
