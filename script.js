@@ -106,6 +106,28 @@ function buildEvents(data) {
 
             if (!desc) return;
 
+            const desc = event.details?.description;
+
+if (!desc) return;
+
+const lowerDesc = desc.toLowerCase();
+
+const hiddenEvents = [
+    "mound visit",
+    "batter timeout",
+    "offensive timeout",
+    "defensive timeout",
+    "on-field delay"
+];
+
+const shouldHide = hiddenEvents.some(hidden =>
+    lowerDesc.includes(hidden)
+);
+
+if (shouldHide || lowerDesc.startsWith("in play")) {
+    return;
+}
+
             events.push({
                 inning: `${half} ${inning}`,
                 batter: batter,
