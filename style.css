@@ -133,3 +133,26 @@ button:hover {
     font-size: 20px;
     font-weight: bold;
 }
+.scoreboard {
+    max-width: 350px;
+    margin: 0 auto;
+    font-size: 20px;
+}
+
+.rhe-header,
+.rhe-row {
+    display: grid;
+    grid-template-columns: 70px 40px 40px 40px;
+    justify-content: center;
+    text-align: center;
+    margin: 4px 0;
+}
+
+.rhe-header {
+    font-weight: bold;
+    color: #888;
+}
+
+.rhe-row {
+    font-weight: bold;
+}
