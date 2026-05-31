@@ -151,7 +151,9 @@ if (shouldHide || lowerDesc.startsWith("in play")) {
                 outs: play.count?.outs,
                 pitchNumber: null,
                 awayScore: play.result?.awayScore,
-                homeScore: play.result?.homeScore
+                homeScore: play.result?.homeScore,
+                eventType: play.result?.eventType,
+                battingSide: half === "TOP" ? "away" : "home"
             });
         }
     });
