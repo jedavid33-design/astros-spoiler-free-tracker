@@ -134,16 +134,15 @@ button:hover {
     font-weight: bold;
 }
 .scoreboard {
-    width: 260px;
+    width: 320px;
     margin: 0 auto;
-    font-size: 26px;
-    font-family: Arial, sans-serif;
+    font-size: 22px;
 }
 
 .rhe-header,
 .rhe-row {
     display: grid;
-    grid-template-columns: 90px 45px 45px 45px;
+    grid-template-columns: 130px 45px 45px 45px;
     align-items: center;
     text-align: center;
 }
