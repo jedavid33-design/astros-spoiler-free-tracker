@@ -115,3 +115,21 @@ button:hover {
 .event-text {
     vertical-align: middle;
 }
+.inning-line {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.matchup-line {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.count-line {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    font-size: 18px;
+    font-weight: bold;
+}
