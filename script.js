@@ -68,8 +68,8 @@ async function loadGame(askResume = true) {
     const feedResponse = await fetch(feedUrl);
     const feedData = await feedResponse.json();
     
-    awayTeamName = feedData.gameData.teams.away.name;
-    homeTeamName = feedData.gameData.teams.home.name;
+    awayTeamName = feedData.gameData.teams.away.teamName;
+    homeTeamName = feedData.gameData.teams.home.teamName;
     
     buildEvents(feedData);
 
