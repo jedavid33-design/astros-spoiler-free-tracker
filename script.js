@@ -230,9 +230,9 @@ document.getElementById("batterInfo").innerHTML = `
     </div>
 
     <div class="count-line">
-        <span>B ${ballDots}</span>
-        <span>S ${strikeDots}</span>
-        <span>O ${outDots}</span>
+        <span>⚾️ ${ballDots}</span>
+       <span><strong>K</strong> ${strikeDots}</span>
+        <span>❌ ${outDots}</span>
     </div>
 `;
 }
