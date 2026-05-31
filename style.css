@@ -162,3 +162,6 @@ button:hover {
     line-height: 1.1;
     margin: 2px 0;
 }
+.count-dots {
+    font-size: 0.7em;
+}
