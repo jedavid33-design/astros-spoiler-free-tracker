@@ -190,9 +190,9 @@ function getSpoilerFreeScore() {
 
 function updateStatus() {
     const currentIndex = getCurrentIndex();
-    const score = getSpoilerFreeScore();
+const score = getSpoilerFreeScore();
 
-    document.getElementById("status").innerHTML = `
+document.getElementById("status").innerHTML = `
     <div class="scoreboard">
         <div class="rhe-header">
             <span></span>
@@ -204,15 +204,15 @@ function updateStatus() {
         <div class="rhe-row">
             <span>MIL</span>
             <span>${score.awayScore}</span>
-            <span>${awayHits || 0}</span>
-            <span>${awayErrors || 0}</span>
+            <span>--</span>
+            <span>--</span>
         </div>
 
         <div class="rhe-row">
             <span>HOU</span>
             <span>${score.homeScore}</span>
-            <span>${homeHits || 0}</span>
-            <span>${homeErrors || 0}</span>
+            <span>--</span>
+            <span>--</span>
         </div>
     </div>
 `;
