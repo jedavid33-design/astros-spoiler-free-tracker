@@ -204,12 +204,35 @@ function updateStatus() {
             ? `Pitch #${event.pitchNumber}`
             : "Plate appearance result";
 
-    document.getElementById("batterInfo").innerHTML = `
-        <strong>${event.inning}</strong><br>
-        <strong>${event.pitcher}</strong> vs <strong>${event.batter}</strong><br>
-        Count: ${countText} | ${outsText}<br>
-        ${pitchText}
-    `;
+    const balls = event.balls ?? 0;
+const strikes = event.strikes ?? 0;
+const outs = event.outs ?? 0;
+
+const ballDots =
+    "● ".repeat(balls) +
+    "○ ".repeat(4 - balls);
+
+const strikeDots =
+    "● ".repeat(strikes) +
+    "○ ".repeat(3 - strikes);
+
+const outDots =
+    "● ".repeat(outs) +
+    "○ ".repeat(3 - outs);
+
+document.getElementById("batterInfo").innerHTML = `
+    <strong>${event.inning}</strong><br><br>
+
+    <strong>${event.pitcher}</strong><br>
+    vs<br>
+    <strong>${event.batter}</strong><br><br>
+
+    Balls&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Strikes<br>
+    ${ballDots}&nbsp;&nbsp;&nbsp;&nbsp;${strikeDots}<br><br>
+
+    Outs<br>
+    ${outDots}
+`;
 }
 
 function getEventIcon(event) {
