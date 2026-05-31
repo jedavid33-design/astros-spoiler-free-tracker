@@ -29,7 +29,7 @@ button:hover {
 
 #status {
     margin-top: 15px;
-    padding: 15px;
+    padding: 12px;
     background: white;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
@@ -42,13 +42,13 @@ button:hover {
     width: 100%;
     max-width: 1000px;
     margin: 15px auto;
-    padding: 18px;
+    padding: 16px;
     background: white;
     color: #002D62;
     border-left: 6px solid #EB6E1F;
     border-radius: 12px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    font-size: 18px;
+    font-size: .8em;
     line-height: 1.5;
     text-align: center;
     cursor: pointer;
@@ -134,9 +134,9 @@ button:hover {
     font-weight: bold;
 }
 .scoreboard {
-    width: 320px;
+    width: 260px;
     margin: 0 auto;
-    font-size: 22px;
+    font-size: 0.8em;
 }
 
 .rhe-header,
@@ -158,4 +158,6 @@ button:hover {
 
 .rhe-row {
     font-weight: bold;
+    line-height: 1.1;
+    margin: 2px 0;
 }
