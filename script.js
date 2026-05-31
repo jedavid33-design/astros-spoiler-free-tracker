@@ -221,17 +221,19 @@ const outDots =
     "○ ".repeat(3 - outs);
 
 document.getElementById("batterInfo").innerHTML = `
-    <strong>${event.inning}</strong><br><br>
+    <div class="inning-line">${event.inning}</div>
 
-    <strong>${event.pitcher}</strong><br>
-    vs<br>
-    <strong>${event.batter}</strong><br><br>
+    <div class="matchup-line">
+        <strong>${event.pitcher}</strong>
+        <span> vs </span>
+        <strong>${event.batter}</strong>
+    </div>
 
-    Balls&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Strikes<br>
-    ${ballDots}&nbsp;&nbsp;&nbsp;&nbsp;${strikeDots}<br><br>
-
-    Outs<br>
-    ${outDots}
+    <div class="count-line">
+        <span>B ${ballDots}</span>
+        <span>S ${strikeDots}</span>
+        <span>O ${outDots}</span>
+    </div>
 `;
 }
 
