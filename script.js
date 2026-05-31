@@ -333,7 +333,7 @@ document.getElementById("batterInfo").innerHTML = `
     <div class="inning-line">${event.inning}</div>
 
     <div class="matchup-line">
-        <strong>${event.pitcher}</strong>
+        <strong>${event.pitcher} (${pitcherPitchCount})</strong>
         <span> vs </span>
         <strong>${event.batter}</strong>
     </div>
