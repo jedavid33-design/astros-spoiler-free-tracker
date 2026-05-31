@@ -318,9 +318,9 @@ document.getElementById("batterInfo").innerHTML = `
     </div>
 
     <div class="count-line">
-        <span>⚾️ ${ballDots}</span>
-       <span><strong>K</strong> ${strikeDots}</span>
-        <span>❌ ${outDots}</span>
+        <span>⚾ <span class="count-dots">${ballDots}</span></span>
+<span><strong>K</strong> <span class="count-dots">${strikeDots}</span></span>
+<span>❌ <span class="count-dots">${outDots}</span></span>
     </div>
 `;
 }
