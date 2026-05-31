@@ -189,11 +189,55 @@ function getSpoilerFreeScore() {
 
     return { awayScore, homeScore };
 }
+function getSpoilerFreeHitsErrors() {
+    let awayHits = 0;
+    let homeHits = 0;
+    let awayErrors = 0;
+    let homeErrors = 0;
 
+    const hitTypes = [
+        "single",
+        "double",
+        "triple",
+        "home_run"
+    ];
+
+    revealedIndexes.forEach(index => {
+        const event = events[index];
+
+        if (!event.eventType) return;
+
+        if (hitTypes.includes(event.eventType)) {
+            if (event.battingSide === "away") {
+                awayHits++;
+            } else {
+                homeHits++;
+            }
+        }
+
+        if (
+            event.eventType === "field_error" ||
+            event.text.toLowerCase().includes("error")
+        ) {
+            if (event.battingSide === "away") {
+                homeErrors++;
+            } else {
+                awayErrors++;
+            }
+        }
+    });
+
+    return {
+        awayHits,
+        homeHits,
+        awayErrors,
+        homeErrors
+    };
+}
 function updateStatus() {
     const currentIndex = getCurrentIndex();
 const score = getSpoilerFreeScore();
-
+const totals = getSpoilerFreeHitsErrors();
 document.getElementById("status").innerHTML = `
     <div class="scoreboard">
         <div class="rhe-header">
