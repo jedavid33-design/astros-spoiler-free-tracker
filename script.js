@@ -193,11 +193,29 @@ function updateStatus() {
     const score = getSpoilerFreeScore();
 
     document.getElementById("status").innerHTML = `
-        <strong>Date:</strong> ${GAME_DATE}<br>
-        <strong>Score:</strong> Away ${score.awayScore} - Home ${score.homeScore}<br>
-        <strong>Revealed:</strong> ${revealedIndexes.length} events<br>
-        <strong>Total Events:</strong> ${events.length}
-    `;
+    <div class="scoreboard">
+        <div class="rhe-header">
+            <span></span>
+            <span>R</span>
+            <span>H</span>
+            <span>E</span>
+        </div>
+
+        <div class="rhe-row">
+            <span>MIL</span>
+            <span>${score.awayScore}</span>
+            <span>${awayHits || 0}</span>
+            <span>${awayErrors || 0}</span>
+        </div>
+
+        <div class="rhe-row">
+            <span>HOU</span>
+            <span>${score.homeScore}</span>
+            <span>${homeHits || 0}</span>
+            <span>${homeErrors || 0}</span>
+        </div>
+    </div>
+`;
 
     if (currentIndex === -1) {
         document.getElementById("batterInfo").innerHTML =
