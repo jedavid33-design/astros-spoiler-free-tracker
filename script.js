@@ -240,10 +240,29 @@ function getSpoilerFreeHitsErrors() {
         homeErrors
     };
 }
+function getPitcherPitchCount(pitcherName) {
+    let count = 0;
+
+    revealedIndexes.forEach(index => {
+        const event = events[index];
+
+        if (
+            event.pitcher === pitcherName &&
+            event.pitchNumber
+        ) {
+            count++;
+        }
+    });
+
+    return count;
+}
 function updateStatus() {
     const currentIndex = getCurrentIndex();
 const score = getSpoilerFreeScore();
 const totals = getSpoilerFreeHitsErrors();
+    
+
+    
 document.getElementById("status").innerHTML = `
     <div class="scoreboard">
         <div class="rhe-header">
@@ -276,7 +295,9 @@ document.getElementById("status").innerHTML = `
     }
 
     const event = events[currentIndex];
-
+    
+    const pitcherPitchCount = getPitcherPitchCount(event.pitcher);
+    
     const countText =
         event.balls !== undefined && event.strikes !== undefined
             ? `${event.balls}-${event.strikes}`
