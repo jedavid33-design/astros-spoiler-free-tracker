@@ -6,6 +6,9 @@ let SAVE_KEY = `astros-tracker-${GAME_DATE}`;
 let events = [];
 let revealedIndexes = [];
 
+let awayTeamName = "";
+let homeTeamName = "";
+
 function setGameDate(newDate) {
     GAME_DATE = newDate;
     SAVE_KEY = `astros-tracker-${GAME_DATE}`;
@@ -64,7 +67,10 @@ async function loadGame(askResume = true) {
 
     const feedResponse = await fetch(feedUrl);
     const feedData = await feedResponse.json();
-
+    
+    awayTeamName = feedData.gameData.teams.away.name;
+    homeTeamName = feedData.gameData.teams.home.name;
+    
     buildEvents(feedData);
 
     const saved = localStorage.getItem(SAVE_KEY);
@@ -248,14 +254,14 @@ document.getElementById("status").innerHTML = `
         </div>
 
         <div class="rhe-row">
-    <span>MIL</span>
+    <span>${awayTeamName}</span>
     <span>${score.awayScore}</span>
     <span>${totals.awayHits}</span>
     <span>${totals.awayErrors}</span>
 </div>
 
 <div class="rhe-row">
-    <span>HOU</span>
+    <span>${homeTeamName}</span>
     <span>${score.homeScore}</span>
     <span>${totals.homeHits}</span>
     <span>${totals.homeErrors}</span>
