@@ -248,18 +248,18 @@ document.getElementById("status").innerHTML = `
         </div>
 
         <div class="rhe-row">
-            <span>MIL</span>
-            <span>${score.awayScore}</span>
-            <span>--</span>
-            <span>--</span>
-        </div>
+    <span>MIL</span>
+    <span>${score.awayScore}</span>
+    <span>${totals.awayHits}</span>
+    <span>${totals.awayErrors}</span>
+</div>
 
-        <div class="rhe-row">
-            <span>HOU</span>
-            <span>${score.homeScore}</span>
-            <span>--</span>
-            <span>--</span>
-        </div>
+<div class="rhe-row">
+    <span>HOU</span>
+    <span>${score.homeScore}</span>
+    <span>${totals.homeHits}</span>
+    <span>${totals.homeErrors}</span>
+</div>
     </div>
 `;
 
