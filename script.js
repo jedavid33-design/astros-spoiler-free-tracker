@@ -471,7 +471,53 @@ function nextInning() {
         revealIndex(nextIndex);
     }
 }
+function showLineup(teamSide) {
+    if (!currentGameData) {
+        alert("Game data is still loading.");
+        return;
+    }
 
+    const teamData = currentGameData.gameData.teams[teamSide];
+    const boxscoreTeam = currentGameData.liveData.boxscore.teams[teamSide];
+
+    const teamName = teamData.teamName;
+    const battingOrder = boxscoreTeam.battingOrder || [];
+    const players = boxscoreTeam.players || {};
+
+    let lineupHtml = "";
+
+    if (battingOrder.length === 0) {
+        lineupHtml = "<p>Lineup is not available yet for this game.</p>";
+    } else {
+        lineupHtml = "<ol class='lineup-list'>";
+
+        battingOrder.forEach(playerId => {
+            const player = players[`ID${playerId}`];
+
+            if (!player) return;
+
+            const name = player.person.fullName;
+            const position = player.position?.abbreviation || "—";
+
+            lineupHtml += `
+                <li>
+                    <span class="lineup-player">${name}</span>
+                    <span class="lineup-position">${position}</span>
+                </li>
+            `;
+        });
+
+        lineupHtml += "</ol>";
+    }
+
+    document.getElementById("lineupTitle").innerHTML = `${teamName} Lineup`;
+    document.getElementById("lineupBody").innerHTML = lineupHtml;
+    document.getElementById("lineupModal").classList.remove("hidden");
+}
+
+function closeLineup() {
+    document.getElementById("lineupModal").classList.add("hidden");
+}
 loadGame();
 
 setInterval(() => {
