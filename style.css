@@ -13,7 +13,7 @@ h1 {
 }
 
 button {
-    padding: 12px 18px
+    padding: 12px 18px;
     margin: 5px;
     border: none;
     border-radius: 8px;
@@ -164,4 +164,72 @@ button:hover {
 }
 .count-dots {
     font-size: 0.8em;
+}
+.team-link {
+    padding: 0;
+    margin: 0;
+    background: none;
+    color: #002D62;
+    font-weight: bold;
+    text-align: left;
+    font-size: 1em;
+    text-decoration: underline;
+}
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 999;
+}
+
+.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: white;
+    color: #002D62;
+    width: 100%;
+    max-width: 420px;
+    border-radius: 14px;
+    padding: 20px;
+    position: relative;
+    box-shadow: 0 0 25px rgba(0,0,0,0.25);
+    border-top: 6px solid #EB6E1F;
+}
+
+.modal-close {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    background: #EB6E1F;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    font-size: 22px;
+}
+
+.lineup-list {
+    text-align: left;
+    padding-left: 28px;
+}
+
+.lineup-list li {
+    margin: 10px 0;
+}
+
+.lineup-player {
+    font-weight: bold;
+}
+
+.lineup-position {
+    float: right;
+    color: #EB6E1F;
+    font-weight: bold;
 }
