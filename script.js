@@ -8,6 +8,8 @@ let revealedIndexes = [];
 
 let awayTeamName = "";
 let homeTeamName = "";
+let currentGameData = null;
+let currentGamePk = null;
 
 function setGameDate(newDate) {
     GAME_DATE = newDate;
