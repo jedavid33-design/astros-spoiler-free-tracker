@@ -69,9 +69,12 @@ async function loadGame(askResume = true) {
 
     const feedResponse = await fetch(feedUrl);
     const feedData = await feedResponse.json();
-    
-    awayTeamName = feedData.gameData.teams.away.teamName;
-    homeTeamName = feedData.gameData.teams.home.teamName;
+
+currentGameData = feedData;
+currentGamePk = gamePk;
+
+awayTeamName = feedData.gameData.teams.away.teamName;
+homeTeamName = feedData.gameData.teams.home.teamName;
     
     buildEvents(feedData);
 
@@ -274,15 +277,15 @@ document.getElementById("status").innerHTML = `
             <span>E</span>
         </div>
 
-        <div class="rhe-row">
-    <span>${awayTeamName}</span>
+<div class="rhe-row">
+    <button class="team-link" onclick="showLineup('away')">${awayTeamName}</button>
     <span>${score.awayScore}</span>
     <span>${totals.awayHits}</span>
     <span>${totals.awayErrors}</span>
 </div>
 
 <div class="rhe-row">
-    <span>${homeTeamName}</span>
+    <button class="team-link" onclick="showLineup('home')">${homeTeamName}</button>
     <span>${score.homeScore}</span>
     <span>${totals.homeHits}</span>
     <span>${totals.homeErrors}</span>
