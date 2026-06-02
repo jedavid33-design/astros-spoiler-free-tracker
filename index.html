@@ -22,9 +22,10 @@
     <button onclick="loadPickedDate()">Load Date</button>
 </div>
 
-    <button onclick="previousEvent()">
-        Previous Event
-
+   <button onclick="previousEvent()">
+    Previous Event
+</button>
+    
     <button onclick="nextAtBat()">
         Next At-Bat
     </button>
@@ -42,8 +43,14 @@
 </button>
 
 <div id="eventList"></div>
-
-    <script src="script.js?v=20"></script>
+<div id="lineupModal" class="modal hidden">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeLineup()">×</button>
+        <h2 id="lineupTitle"></h2>
+        <div id="lineupBody"></div>
+    </div>
+</div>
+    <script src="script.js?v=21"></script>
 
 </body>
 </html>
