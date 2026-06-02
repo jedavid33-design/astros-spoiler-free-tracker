@@ -478,31 +478,28 @@ function showLineup(teamSide) {
     }
 
     const teamData = currentGameData.gameData.teams[teamSide];
-    const boxscoreTeam = currentGameData.liveData.boxscore.teams[teamSide];
-
     const teamName = teamData.teamName;
-    const battingOrder = boxscoreTeam.battingOrder || [];
-    const players = boxscoreTeam.players || {};
+
+    const currentIndex = getCurrentIndex();
+    const maxAtBat =
+        currentIndex === -1
+            ? -1
+            : events[currentIndex].atBat;
+
+    const lineup = getLineupAtPoint(teamSide, maxAtBat);
 
     let lineupHtml = "";
 
-    if (battingOrder.length === 0) {
-        lineupHtml = "<p>Lineup is not available yet for this game.</p>";
+    if (lineup.length === 0) {
+        lineupHtml = "<p>Lineup is not available yet for this point in the game.</p>";
     } else {
         lineupHtml = "<ol class='lineup-list'>";
 
-        battingOrder.forEach(playerId => {
-            const player = players[`ID${playerId}`];
-
-            if (!player) return;
-
-            const name = player.person.fullName;
-            const position = player.position?.abbreviation || "—";
-
+        lineup.forEach(player => {
             lineupHtml += `
                 <li>
-                    <span class="lineup-player">${name}</span>
-                    <span class="lineup-position">${position}</span>
+                    <span class="lineup-player">${player.name}</span>
+                    <span class="lineup-position">${player.position}</span>
                 </li>
             `;
         });
@@ -514,7 +511,70 @@ function showLineup(teamSide) {
     document.getElementById("lineupBody").innerHTML = lineupHtml;
     document.getElementById("lineupModal").classList.remove("hidden");
 }
+function getLineupAtPoint(teamSide, maxAtBat) {
+    const plays = currentGameData.liveData.plays.allPlays;
+    const boxscoreTeam = currentGameData.liveData.boxscore.teams[teamSide];
+    const players = boxscoreTeam.players || {};
 
+    const lineupMap = new Map();
+
+    // 1. Build the original starting lineup from each team's first 9 batting spots.
+    Object.values(players).forEach(player => {
+        const battingOrder = player.battingOrder;
+
+        if (!battingOrder) return;
+
+        const lineupSpot = Math.floor(Number(battingOrder) / 100);
+
+        if (lineupSpot < 1 || lineupSpot > 9) return;
+
+        // Only set the first player we find for each lineup spot.
+        // Later substitutions in the same spot will be handled below.
+        if (!lineupMap.has(lineupSpot)) {
+            lineupMap.set(lineupSpot, {
+                name: player.person.fullName,
+                position: player.position?.abbreviation || "—"
+            });
+        }
+    });
+
+    // 2. Apply substitutions only up to the revealed point of the game.
+    plays.forEach((play, playIndex) => {
+        if (maxAtBat !== -1 && playIndex > maxAtBat) {
+            return;
+        }
+
+        const battingSide =
+            play.about.halfInning === "top" ? "away" : "home";
+
+        if (battingSide !== teamSide) {
+            return;
+        }
+
+        const batterId = play.matchup.batter.id;
+        const batterKey = `ID${batterId}`;
+        const batterInfo = players[batterKey];
+
+        if (!batterInfo) return;
+
+        const battingOrder = batterInfo.battingOrder;
+
+        if (!battingOrder) return;
+
+        const lineupSpot = Math.floor(Number(battingOrder) / 100);
+
+        if (lineupSpot < 1 || lineupSpot > 9) return;
+
+        lineupMap.set(lineupSpot, {
+            name: batterInfo.person.fullName,
+            position: batterInfo.position?.abbreviation || "—"
+        });
+    });
+
+    return Array.from(lineupMap.entries())
+        .sort((a, b) => Number(a[0]) - Number(b[0]))
+        .map(entry => entry[1]);
+}
 function closeLineup() {
     document.getElementById("lineupModal").classList.add("hidden");
 }
