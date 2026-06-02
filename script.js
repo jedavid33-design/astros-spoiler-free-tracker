@@ -518,38 +518,11 @@ function getLineupAtPoint(teamSide, maxAtBat) {
 
     const lineupMap = new Map();
 
-    // 1. Build the original starting lineup from each team's first 9 batting spots.
-    Object.values(players).forEach(player => {
-        const battingOrder = player.battingOrder;
-
-        if (!battingOrder) return;
-
-        const lineupSpot = Math.floor(Number(battingOrder) / 100);
-
-        if (lineupSpot < 1 || lineupSpot > 9) return;
-
-        // Only set the first player we find for each lineup spot.
-        // Later substitutions in the same spot will be handled below.
-        if (!lineupMap.has(lineupSpot)) {
-            lineupMap.set(lineupSpot, {
-                name: player.person.fullName,
-                position: player.position?.abbreviation || "—"
-            });
-        }
-    });
-
-    // 2. Apply substitutions only up to the revealed point of the game.
     plays.forEach((play, playIndex) => {
-        if (maxAtBat !== -1 && playIndex > maxAtBat) {
-            return;
-        }
-
         const battingSide =
             play.about.halfInning === "top" ? "away" : "home";
 
-        if (battingSide !== teamSide) {
-            return;
-        }
+        if (battingSide !== teamSide) return;
 
         const batterId = play.matchup.batter.id;
         const batterKey = `ID${batterId}`;
@@ -558,13 +531,25 @@ function getLineupAtPoint(teamSide, maxAtBat) {
         if (!batterInfo) return;
 
         const battingOrder = batterInfo.battingOrder;
-
         if (!battingOrder) return;
 
         const lineupSpot = Math.floor(Number(battingOrder) / 100);
-
         if (lineupSpot < 1 || lineupSpot > 9) return;
 
+        // First time we see a lineup spot = starter.
+        if (!lineupMap.has(lineupSpot)) {
+            lineupMap.set(lineupSpot, {
+                name: batterInfo.person.fullName,
+                position: batterInfo.position?.abbreviation || "—"
+            });
+        }
+
+        // After revealed point, do not apply future substitutions.
+        if (maxAtBat !== -1 && playIndex > maxAtBat) {
+            return;
+        }
+
+        // Up to revealed point, update if a new player appears in that spot.
         lineupMap.set(lineupSpot, {
             name: batterInfo.person.fullName,
             position: batterInfo.position?.abbreviation || "—"
