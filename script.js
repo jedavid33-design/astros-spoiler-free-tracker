@@ -131,7 +131,7 @@ const shouldHide = hiddenEvents.some(hidden =>
     lowerDesc.includes(hidden)
 );
 
-if (shouldHide || lowerDesc.startsWith("in play")) {
+if (shouldHide) {
     return;
 }
 
