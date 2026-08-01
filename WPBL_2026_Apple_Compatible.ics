@@ -1,0 +1,337 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Julie David//WPBL 2026//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:WPBL 2026
+BEGIN:VEVENT
+UID:wpbl-2026-08-01-1700-Los-Angeles-Queens-New-York-Heights@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260801T220000Z
+DTEND:20260802T010000Z
+SUMMARY:Los Angeles Queens at New York Heights
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-02-1830-San-Francisco-Firebells-Boston-Hunters@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260802T233000Z
+DTEND:20260803T023000Z
+SUMMARY:San Francisco Firebells at Boston Hunters
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-05-1830-Boston-Hunters-Los-Angeles-Queens@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260805T233000Z
+DTEND:20260806T023000Z
+SUMMARY:Boston Hunters at Los Angeles Queens
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-06-1830-New-York-Heights-San-Francisco-Firebells@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260806T233000Z
+DTEND:20260807T023000Z
+SUMMARY:New York Heights at San Francisco Firebells
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-07-1830-San-Francisco-Firebells-Los-Angeles-Queens@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260807T233000Z
+DTEND:20260808T023000Z
+SUMMARY:San Francisco Firebells at Los Angeles Queens
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-08-1300-Boston-Hunters-New-York-Heights@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260808T180000Z
+DTEND:20260808T210000Z
+SUMMARY:Boston Hunters at New York Heights
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-08-1830-Los-Angeles-Queens-San-Francisco-Firebells@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260808T233000Z
+DTEND:20260809T023000Z
+SUMMARY:Los Angeles Queens at San Francisco Firebells
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-09-1830-New-York-Heights-Boston-Hunters@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260809T233000Z
+DTEND:20260810T023000Z
+SUMMARY:New York Heights at Boston Hunters
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-12-1830-Los-Angeles-Queens-San-Francisco-Firebells@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260812T233000Z
+DTEND:20260813T023000Z
+SUMMARY:Los Angeles Queens at San Francisco Firebells
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-13-1830-Boston-Hunters-New-York-Heights@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260813T233000Z
+DTEND:20260814T023000Z
+SUMMARY:Boston Hunters at New York Heights
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-14-1830-Los-Angeles-Queens-San-Francisco-Firebells@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260814T233000Z
+DTEND:20260815T023000Z
+SUMMARY:Los Angeles Queens at San Francisco Firebells
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-15-1300-San-Francisco-Firebells-New-York-Heights@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260815T180000Z
+DTEND:20260815T210000Z
+SUMMARY:San Francisco Firebells at New York Heights
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-15-1830-Los-Angeles-Queens-Boston-Hunters@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260815T233000Z
+DTEND:20260816T023000Z
+SUMMARY:Los Angeles Queens at Boston Hunters
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-16-1830-Boston-Hunters-New-York-Heights@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260816T233000Z
+DTEND:20260817T023000Z
+SUMMARY:Boston Hunters at New York Heights
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-19-1830-New-York-Heights-San-Francisco-Firebells@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260819T233000Z
+DTEND:20260820T023000Z
+SUMMARY:New York Heights at San Francisco Firebells
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-20-1830-New-York-Heights-Boston-Hunters@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260820T233000Z
+DTEND:20260821T023000Z
+SUMMARY:New York Heights at Boston Hunters
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-21-1830-San-Francisco-Firebells-Los-Angeles-Queens@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260821T233000Z
+DTEND:20260822T023000Z
+SUMMARY:San Francisco Firebells at Los Angeles Queens
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-22-1300-San-Francisco-Firebells-Boston-Hunters@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260822T180000Z
+DTEND:20260822T210000Z
+SUMMARY:San Francisco Firebells at Boston Hunters
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-22-1830-New-York-Heights-Los-Angeles-Queens@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260822T233000Z
+DTEND:20260823T023000Z
+SUMMARY:New York Heights at Los Angeles Queens
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-23-1830-Los-Angeles-Queens-Boston-Hunters@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260823T233000Z
+DTEND:20260824T023000Z
+SUMMARY:Los Angeles Queens at Boston Hunters
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-26-1830-Boston-Hunters-Los-Angeles-Queens@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260826T233000Z
+DTEND:20260827T023000Z
+SUMMARY:Boston Hunters at Los Angeles Queens
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-27-1830-Los-Angeles-Queens-New-York-Heights@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260827T233000Z
+DTEND:20260828T023000Z
+SUMMARY:Los Angeles Queens at New York Heights
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-28-1830-Boston-Hunters-San-Francisco-Firebells@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260828T233000Z
+DTEND:20260829T023000Z
+SUMMARY:Boston Hunters at San Francisco Firebells
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-29-1830-New-York-Heights-Los-Angeles-Queens@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260829T233000Z
+DTEND:20260830T023000Z
+SUMMARY:New York Heights at Los Angeles Queens
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-08-30-1830-New-York-Heights-San-Francisco-Firebells@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260830T233000Z
+DTEND:20260831T023000Z
+SUMMARY:New York Heights at San Francisco Firebells
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-09-02-1830-San-Francisco-Firebells-Boston-Hunters@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260902T233000Z
+DTEND:20260903T023000Z
+SUMMARY:San Francisco Firebells at Boston Hunters
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-09-03-1830-New-York-Heights-Los-Angeles-Queens@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260903T233000Z
+DTEND:20260904T023000Z
+SUMMARY:New York Heights at Los Angeles Queens
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-09-04-1830-San-Francisco-Firebells-New-York-Heights@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260904T233000Z
+DTEND:20260905T023000Z
+SUMMARY:San Francisco Firebells at New York Heights
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-09-05-1830-Los-Angeles-Queens-Boston-Hunters@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260905T233000Z
+DTEND:20260906T023000Z
+SUMMARY:Los Angeles Queens at Boston Hunters
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:wpbl-2026-09-06-1830-Boston-Hunters-San-Francisco-Firebells@julie
+DTSTAMP:20260801T015924Z
+DTSTART:20260906T233000Z
+DTEND:20260907T023000Z
+SUMMARY:Boston Hunters at San Francisco Firebells
+LOCATION:Robin Roberts Stadium\, Springfield\, Illinois
+DESCRIPTION:2026 WPBL regular-season game. Official schedule: https://www.womensprobaseballleague.com/schedule/
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+END:VCALENDAR
