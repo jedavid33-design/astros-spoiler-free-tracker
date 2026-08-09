@@ -215,6 +215,7 @@ function buildGameCompleteEvent(data) {
             .map(item => item.name)
             .filter(Boolean)
     )];
+    const decisions = data.liveData.decisions || {};
     const pitchCounts = ["away", "home"].map(teamSide => {
         const boxscoreTeam = data.liveData.boxscore?.teams?.[teamSide] || {};
         const players = boxscoreTeam.players || {};
@@ -252,6 +253,9 @@ function buildGameCompleteEvent(data) {
             wind: weather.wind || "Not available",
             umpires: umpires.length ? umpires.join(", ") : "Not available",
             network: networks.length ? networks.join(", ") : "Not available",
+            winningPitcher: decisions.winner?.fullName || "Not available",
+            losingPitcher: decisions.loser?.fullName || "Not available",
+            savePitcher: decisions.save?.fullName || "None",
             pitchCounts
         }
     };
@@ -505,6 +509,9 @@ function addEventCard(index) {
                 <div><dt>Wind</dt><dd>${details.wind}</dd></div>
                 <div class="wide"><dt>Umpires</dt><dd>${details.umpires}</dd></div>
                 <div class="wide"><dt>Network</dt><dd>${details.network}</dd></div>
+                <div><dt>Winning pitcher</dt><dd>${details.winningPitcher}</dd></div>
+                <div><dt>Losing pitcher</dt><dd>${details.losingPitcher}</dd></div>
+                <div><dt>Save</dt><dd>${details.savePitcher}</dd></div>
                 <div class="wide">
                     <dt>Official pitch counts</dt>
                     <dd class="pitch-counts">${pitchCountHtml}</dd>
