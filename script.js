@@ -10,6 +10,7 @@ let awayTeamName = "";
 let homeTeamName = "";
 let currentGameData = null;
 let currentGamePk = null;
+let currentGameBroadcasts = [];
 
 function setGameDate(newDate) {
     GAME_DATE = newDate;
@@ -49,7 +50,7 @@ async function loadGame(askResume = true) {
 }
 
     const scheduleUrl =
-        `https://statsapi.mlb.com/api/v1/schedule?sportId=1&teamId=${ASTROS_TEAM_ID}&date=${GAME_DATE}`;
+        `https://statsapi.mlb.com/api/v1/schedule?sportId=1&teamId=${ASTROS_TEAM_ID}&date=${GAME_DATE}&hydrate=broadcasts(all)`;
 
     const scheduleResponse = await fetch(scheduleUrl);
     const scheduleData = await scheduleResponse.json();
@@ -62,7 +63,8 @@ async function loadGame(askResume = true) {
         return;
     }
 
-    const gamePk = games[0].gamePk;
+    const scheduledGame = games[0];
+    const gamePk = scheduledGame.gamePk;
 
     const feedUrl =
         `https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`;
@@ -72,6 +74,7 @@ async function loadGame(askResume = true) {
 
 currentGameData = feedData;
 currentGamePk = gamePk;
+currentGameBroadcasts = scheduledGame.broadcasts || [];
 
 awayTeamName = feedData.gameData.teams.away.teamName;
 homeTeamName = feedData.gameData.teams.home.teamName;
@@ -168,6 +171,69 @@ if (shouldHide) {
             });
         }
     });
+
+    if (data.gameData.status?.abstractGameState === "Final") {
+        events.push(buildGameCompleteEvent(data));
+    }
+}
+
+function formatGameTime(dateValue, timeZone) {
+    if (!dateValue) return "Not available";
+
+    return new Intl.DateTimeFormat("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        timeZone: timeZone || undefined,
+        timeZoneName: "short"
+    }).format(new Date(dateValue));
+}
+
+function formatDuration(totalMinutes) {
+    if (!Number.isFinite(totalMinutes)) return "Not available";
+
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    return hours > 0 ? `${hours} hr ${minutes} min` : `${minutes} min`;
+}
+
+function buildGameCompleteEvent(data) {
+    const gameInfo = data.gameData.gameInfo || {};
+    const venue = data.gameData.venue || {};
+    const weather = data.gameData.weather || {};
+    const durationMinutes = Number(gameInfo.gameDurationMinutes);
+    const startDate = gameInfo.firstPitch || data.gameData.datetime?.dateTime;
+    const endDate = startDate && Number.isFinite(durationMinutes)
+        ? new Date(new Date(startDate).getTime() + durationMinutes * 60000)
+        : null;
+    const timeZone = venue.timeZone?.id;
+    const umpires = (data.liveData.boxscore?.officials || [])
+        .map(item => `${item.official?.fullName || "Unknown"} (${item.officialType || "Official"})`);
+    const networks = [...new Set(
+        currentGameBroadcasts
+            .filter(item => item.type === "TV")
+            .map(item => item.name)
+            .filter(Boolean)
+    )];
+
+    return {
+        kind: "game-complete",
+        inning: "FINAL",
+        atBat: Number.MAX_SAFE_INTEGER,
+        text: "Game Complete",
+        details: {
+            startTime: formatGameTime(startDate, timeZone),
+            endTime: formatGameTime(endDate, timeZone),
+            duration: formatDuration(durationMinutes),
+            venue: venue.name || "Not available",
+            weather: weather.condition && weather.temp
+                ? `${weather.temp}Â°F, ${weather.condition}`
+                : weather.condition || "Not available",
+            wind: weather.wind || "Not available",
+            umpires: umpires.length ? umpires.join(", ") : "Not available",
+            network: networks.length ? networks.join(", ") : "Not available"
+        }
+    };
 }
 
 function saveProgress() {
@@ -300,6 +366,14 @@ document.getElementById("status").innerHTML = `
     }
 
     const event = events[currentIndex];
+
+    if (event.kind === "game-complete") {
+        document.getElementById("batterInfo").innerHTML = `
+            <div class="inning-line">Game Complete</div>
+            <div class="completion-message">Every event has been revealed.</div>
+        `;
+        return;
+    }
     
     const pitcherPitchCount = getPitcherPitchCount(event.pitcher);
     
@@ -323,16 +397,16 @@ const strikes = event.strikes ?? 0;
 const outs = event.outs ?? 0;
 
 const ballDots =
-    "● ".repeat(balls) +
-    "○ ".repeat(4 - balls);
+    "â ".repeat(balls) +
+    "â ".repeat(4 - balls);
 
 const strikeDots =
-    "● ".repeat(strikes) +
-    "○ ".repeat(3 - strikes);
+    "â ".repeat(strikes) +
+    "â ".repeat(3 - strikes);
 
 const outDots =
-    "● ".repeat(outs) +
-    "○ ".repeat(3 - outs);
+    "â ".repeat(outs) +
+    "â ".repeat(3 - outs);
 
 document.getElementById("batterInfo").innerHTML = `
     <div class="inning-line">${event.inning}</div>
@@ -344,28 +418,30 @@ document.getElementById("batterInfo").innerHTML = `
     </div>
 
     <div class="count-line">
-        <span>⚾ <span class="count-dots">${ballDots}</span></span>
+        <span>â¾ <span class="count-dots">${ballDots}</span></span>
 <span><strong>K</strong> <span class="count-dots">${strikeDots}</span></span>
-<span>❌ <span class="count-dots">${outDots}</span></span>
+<span>â <span class="count-dots">${outDots}</span></span>
     </div>
 `;
 }
 
 function getEventIcon(event) {
+    if (event.kind === "game-complete") return "â";
+
     const text = event.text.toLowerCase();
 
     if (event.pitchNumber) {
-        const numbers = ["", "①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨"];
+        const numbers = ["", "â ", "â¡", "â¢", "â£", "â¤", "â¥", "â¦", "â§", "â¨"];
         return numbers[event.pitchNumber] || `P${event.pitchNumber}`;
     }
 
-    if (text.includes("steals")) return "🏃";
-    if (text.includes("pickoff")) return "⚠️";
-    if (text.includes("homers") || text.includes("home run")) return "💥";
-    if (text.includes("pitching change")) return "🔁";
-    if (text.includes("defensive")) return "🧤";
+    if (text.includes("steals")) return "ð";
+    if (text.includes("pickoff")) return "â ï¸";
+    if (text.includes("homers") || text.includes("home run")) return "ð¥";
+    if (text.includes("pitching change")) return "ð";
+    if (text.includes("defensive")) return "ð§¤";
 
-    return "•";
+    return "â¢";
 }
 
 function addEventCard(index) {
@@ -373,7 +449,33 @@ function addEventCard(index) {
     const icon = getEventIcon(event);
 
     const row = document.createElement("div");
-    row.className = "event-row";
+    row.className = event.kind === "game-complete"
+        ? "event-row game-complete-card"
+        : "event-row";
+
+    if (event.kind === "game-complete") {
+        const details = event.details;
+
+        row.innerHTML = `
+            <div class="game-complete-title">
+                <span class="event-icon">${icon}</span>
+                <span>Game Complete</span>
+            </div>
+            <dl class="game-complete-details">
+                <div><dt>Start time</dt><dd>${details.startTime}</dd></div>
+                <div><dt>End time</dt><dd>${details.endTime}</dd></div>
+                <div><dt>Duration</dt><dd>${details.duration}</dd></div>
+                <div><dt>Venue</dt><dd>${details.venue}</dd></div>
+                <div><dt>Weather</dt><dd>${details.weather}</dd></div>
+                <div><dt>Wind</dt><dd>${details.wind}</dd></div>
+                <div class="wide"><dt>Umpires</dt><dd>${details.umpires}</dd></div>
+                <div class="wide"><dt>Network</dt><dd>${details.network}</dd></div>
+            </dl>
+        `;
+
+        document.getElementById("eventList").prepend(row);
+        return;
+    }
 
     row.innerHTML = `
         <span class="event-icon">${icon}</span>
@@ -540,7 +642,7 @@ function getLineupAtPoint(teamSide, maxAtBat) {
         if (!lineupMap.has(lineupSpot)) {
             lineupMap.set(lineupSpot, {
                 name: batterInfo.person.fullName,
-                position: batterInfo.position?.abbreviation || "—"
+                position: batterInfo.position?.abbreviation || "â"
             });
         }
 
@@ -552,7 +654,7 @@ function getLineupAtPoint(teamSide, maxAtBat) {
         // Up to revealed point, update if a new player appears in that spot.
         lineupMap.set(lineupSpot, {
             name: batterInfo.person.fullName,
-            position: batterInfo.position?.abbreviation || "—"
+            position: batterInfo.position?.abbreviation || "â"
         });
     });
 
