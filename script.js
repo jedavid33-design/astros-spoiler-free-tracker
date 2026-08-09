@@ -227,7 +227,7 @@ function buildGameCompleteEvent(data) {
             duration: formatDuration(durationMinutes),
             venue: venue.name || "Not available",
             weather: weather.condition && weather.temp
-                ? `${weather.temp}Â°F, ${weather.condition}`
+                ? `${weather.temp}\u00B0F, ${weather.condition}`
                 : weather.condition || "Not available",
             wind: weather.wind || "Not available",
             umpires: umpires.length ? umpires.join(", ") : "Not available",
@@ -397,16 +397,16 @@ const strikes = event.strikes ?? 0;
 const outs = event.outs ?? 0;
 
 const ballDots =
-    "â ".repeat(balls) +
-    "â ".repeat(4 - balls);
+    "&#9679; ".repeat(balls) +
+    "&#9675; ".repeat(4 - balls);
 
 const strikeDots =
-    "â ".repeat(strikes) +
-    "â ".repeat(3 - strikes);
+    "&#9679; ".repeat(strikes) +
+    "&#9675; ".repeat(3 - strikes);
 
 const outDots =
-    "â ".repeat(outs) +
-    "â ".repeat(3 - outs);
+    "&#9679; ".repeat(outs) +
+    "&#9675; ".repeat(3 - outs);
 
 document.getElementById("batterInfo").innerHTML = `
     <div class="inning-line">${event.inning}</div>
@@ -418,30 +418,30 @@ document.getElementById("batterInfo").innerHTML = `
     </div>
 
     <div class="count-line">
-        <span>â¾ <span class="count-dots">${ballDots}</span></span>
+        <span>&#9918; <span class="count-dots">${ballDots}</span></span>
 <span><strong>K</strong> <span class="count-dots">${strikeDots}</span></span>
-<span>â <span class="count-dots">${outDots}</span></span>
+<span>&#10060; <span class="count-dots">${outDots}</span></span>
     </div>
 `;
 }
 
 function getEventIcon(event) {
-    if (event.kind === "game-complete") return "â";
+    if (event.kind === "game-complete") return "&#10003;";
 
     const text = event.text.toLowerCase();
 
     if (event.pitchNumber) {
-        const numbers = ["", "â ", "â¡", "â¢", "â£", "â¤", "â¥", "â¦", "â§", "â¨"];
+        const numbers = ["", "&#9312;", "&#9313;", "&#9314;", "&#9315;", "&#9316;", "&#9317;", "&#9318;", "&#9319;", "&#9320;"];
         return numbers[event.pitchNumber] || `P${event.pitchNumber}`;
     }
 
-    if (text.includes("steals")) return "ð";
-    if (text.includes("pickoff")) return "â ï¸";
-    if (text.includes("homers") || text.includes("home run")) return "ð¥";
-    if (text.includes("pitching change")) return "ð";
-    if (text.includes("defensive")) return "ð§¤";
+    if (text.includes("steals")) return "&#127939;";
+    if (text.includes("pickoff")) return "&#9888;&#65039;";
+    if (text.includes("homers") || text.includes("home run")) return "&#128165;";
+    if (text.includes("pitching change")) return "&#128257;";
+    if (text.includes("defensive")) return "&#129508;";
 
-    return "â¢";
+    return "&#8226;";
 }
 
 function addEventCard(index) {
@@ -642,7 +642,7 @@ function getLineupAtPoint(teamSide, maxAtBat) {
         if (!lineupMap.has(lineupSpot)) {
             lineupMap.set(lineupSpot, {
                 name: batterInfo.person.fullName,
-                position: batterInfo.position?.abbreviation || "â"
+                position: batterInfo.position?.abbreviation || "\u2014"
             });
         }
 
@@ -654,7 +654,7 @@ function getLineupAtPoint(teamSide, maxAtBat) {
         // Up to revealed point, update if a new player appears in that spot.
         lineupMap.set(lineupSpot, {
             name: batterInfo.person.fullName,
-            position: batterInfo.position?.abbreviation || "â"
+            position: batterInfo.position?.abbreviation || "\u2014"
         });
     });
 
