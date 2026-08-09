@@ -115,6 +115,77 @@ button:hover {
 .event-text {
     vertical-align: middle;
 }
+
+.game-complete-card {
+    border-top: 6px solid #EB6E1F;
+    padding: 18px;
+}
+
+.game-complete-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #002D62;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 14px;
+}
+
+.game-complete-title .event-icon {
+    align-items: center;
+    background: #002D62;
+    border-radius: 50%;
+    color: white;
+    display: inline-flex;
+    height: 28px;
+    justify-content: center;
+    min-width: 28px;
+}
+
+.game-complete-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 20px;
+    margin: 0;
+}
+
+.game-complete-details div {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 8px;
+}
+
+.game-complete-details .wide {
+    grid-column: 1 / -1;
+}
+
+.game-complete-details dt {
+    color: #EB6E1F;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    margin-bottom: 3px;
+    text-transform: uppercase;
+}
+
+.game-complete-details dd {
+    color: #002D62;
+    margin: 0;
+}
+
+.completion-message {
+    color: #002D62;
+    font-size: 16px;
+}
+
+@media (max-width: 520px) {
+    .game-complete-details {
+        grid-template-columns: 1fr;
+    }
+
+    .game-complete-details .wide {
+        grid-column: auto;
+    }
+}
 .inning-line {
     font-size: 20px;
     font-weight: bold;
