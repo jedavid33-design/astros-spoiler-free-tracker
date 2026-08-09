@@ -172,6 +172,34 @@ button:hover {
     margin: 0;
 }
 
+.pitch-counts {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.pitch-count-team h4 {
+    font-size: 15px;
+    margin: 4px 0 6px;
+}
+
+.pitch-count-team ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.pitch-count-team li {
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    padding: 3px 0;
+}
+
+.pitch-count-team li strong {
+    white-space: nowrap;
+}
+
 .completion-message {
     color: #002D62;
     font-size: 16px;
@@ -184,6 +212,10 @@ button:hover {
 
     .game-complete-details .wide {
         grid-column: auto;
+    }
+
+    .pitch-counts {
+        grid-template-columns: 1fr;
     }
 }
 .inning-line {

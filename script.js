@@ -215,6 +215,23 @@ function buildGameCompleteEvent(data) {
             .map(item => item.name)
             .filter(Boolean)
     )];
+    const pitchCounts = ["away", "home"].map(teamSide => {
+        const boxscoreTeam = data.liveData.boxscore?.teams?.[teamSide] || {};
+        const players = boxscoreTeam.players || {};
+        const pitchers = (boxscoreTeam.pitchers || []).map(pitcherId => {
+            const pitcher = players[`ID${pitcherId}`];
+
+            return {
+                name: pitcher?.person?.fullName || "Unknown pitcher",
+                pitches: pitcher?.stats?.pitching?.numberOfPitches
+            };
+        });
+
+        return {
+            team: data.gameData.teams?.[teamSide]?.teamName || teamSide,
+            pitchers
+        };
+    });
 
     return {
         kind: "game-complete",
@@ -226,12 +243,16 @@ function buildGameCompleteEvent(data) {
             endTime: formatGameTime(endDate, timeZone),
             duration: formatDuration(durationMinutes),
             venue: venue.name || "Not available",
+            attendance: Number.isFinite(Number(gameInfo.attendance))
+                ? Number(gameInfo.attendance).toLocaleString("en-US")
+                : "Not available",
             weather: weather.condition && weather.temp
                 ? `${weather.temp}\u00B0F, ${weather.condition}`
                 : weather.condition || "Not available",
             wind: weather.wind || "Not available",
             umpires: umpires.length ? umpires.join(", ") : "Not available",
-            network: networks.length ? networks.join(", ") : "Not available"
+            network: networks.length ? networks.join(", ") : "Not available",
+            pitchCounts
         }
     };
 }
@@ -455,6 +476,19 @@ function addEventCard(index) {
 
     if (event.kind === "game-complete") {
         const details = event.details;
+        const pitchCountHtml = details.pitchCounts.map(team => `
+            <section class="pitch-count-team">
+                <h4>${team.team}</h4>
+                <ul>
+                    ${team.pitchers.map(pitcher => `
+                        <li>
+                            <span>${pitcher.name}</span>
+                            <strong>${pitcher.pitches ?? "N/A"} pitches</strong>
+                        </li>
+                    `).join("")}
+                </ul>
+            </section>
+        `).join("");
 
         row.innerHTML = `
             <div class="game-complete-title">
@@ -466,10 +500,15 @@ function addEventCard(index) {
                 <div><dt>End time</dt><dd>${details.endTime}</dd></div>
                 <div><dt>Duration</dt><dd>${details.duration}</dd></div>
                 <div><dt>Venue</dt><dd>${details.venue}</dd></div>
+                <div><dt>Attendance</dt><dd>${details.attendance}</dd></div>
                 <div><dt>Weather</dt><dd>${details.weather}</dd></div>
                 <div><dt>Wind</dt><dd>${details.wind}</dd></div>
                 <div class="wide"><dt>Umpires</dt><dd>${details.umpires}</dd></div>
                 <div class="wide"><dt>Network</dt><dd>${details.network}</dd></div>
+                <div class="wide">
+                    <dt>Official pitch counts</dt>
+                    <dd class="pitch-counts">${pitchCountHtml}</dd>
+                </div>
             </dl>
         `;
 
