@@ -462,7 +462,11 @@ function getEventIcon(event) {
 
     if (text.includes("steals")) return "&#127939;";
     if (text.includes("pickoff")) return "&#9888;&#65039;";
-    if (text.includes("homers") || text.includes("home run")) return "&#128165;";
+    if (
+        text.includes("homers") ||
+        text.includes("home run") ||
+        text.includes("grand slam")
+    ) return "&#128165;";
     if (text.includes("pitching change")) return "&#128257;";
     if (text.includes("defensive")) return "&#129508;";
 
