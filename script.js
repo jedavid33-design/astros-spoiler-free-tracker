@@ -676,14 +676,13 @@ function renderFieldLocation(location, description) {
     return `
         <div class="field-location" aria-label="Ball in play location">
             <svg viewBox="0 0 250 250" role="img" aria-label="Ball ${caught ? "caught" : "played"} at this field location">
-                <path class="outfield-grass" d="M18 205 Q125 4 232 205 L125 242 Z"></path>
-                <path class="infield-dirt" d="M125 128 L181 184 L125 240 L69 184 Z"></path>
-                <path class="foul-line" d="M125 240 L18 205 M125 240 L232 205"></path>
-                <path class="infield-line" d="M125 155 L154 184 L125 213 L96 184 Z"></path>
-                <circle class="ball-marker${caught ? " caught" : ""}" cx="${x}" cy="${y}" r="7"></circle>
-                ${caught ? `<circle class="catch-ring" cx="${x}" cy="${y}" r="12"></circle>` : ""}
+                <path class="outfield-grass" d="M15 105 Q125 -15 235 105 L125 205 Z"></path>
+                <path class="infield-dirt" d="M125 125 L170 166 L125 211 L80 166 Z"></path>
+                <path class="foul-line" d="M125 205 L15 105 M125 205 L235 105"></path>
+                <path class="infield-line" d="M125 143 L151 169 L125 195 L99 169 Z"></path>
+                <circle class="ball-marker${caught ? " caught" : ""}" cx="${x}" cy="${y}" r="6"></circle>
+                ${caught ? `<circle class="catch-ring" cx="${x}" cy="${y}" r="10"></circle>` : ""}
             </svg>
-            <span>${caught ? "Caught here" : "Played here"}</span>
         </div>
     `;
 }

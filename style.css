@@ -392,18 +392,15 @@ button:hover {
 }
 
 .field-location {
-    align-items: center;
-    color: #64748b;
-    display: flex;
-    flex-direction: column;
-    font-size: 11px;
-    margin: 8px 0 2px 28px;
-    width: 150px;
+    line-height: 0;
+    margin: 6px auto 0;
+    width: 96px;
 }
 
 .field-location svg {
+    display: block;
     height: auto;
-    width: 150px;
+    width: 96px;
 }
 
 .outfield-grass { fill: #dcebdc; stroke: #7aa67a; stroke-width: 2; }
@@ -418,8 +415,8 @@ button:hover {
     body { padding: 12px; }
     .navigation-controls button { font-size: 13px; padding: 10px 11px; }
     .between-play-info { gap: 10px; }
-    .field-location { margin-left: 28px; width: 125px; }
-    .field-location svg { width: 125px; }
+    .field-location,
+    .field-location svg { width: 88px; }
 }
 .team-link {
     padding: 0;
