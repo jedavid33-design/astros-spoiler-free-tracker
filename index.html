@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Astros Spoiler-Free Tracker</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=6">
 <link rel="apple-touch-icon" href="icon.PNG">
 <link rel="icon" type="image/png" href="icon.PNG">
 </head>
@@ -13,37 +13,37 @@
 
     <h1>&#9918; Julie's Game Day &#9918;</h1>
 
-    <div>
-    <button onclick="loadToday()">Today's Game</button>
-    <button onclick="loadYesterday()">Yesterday's Game</button>
+    <section id="gamePicker" class="game-picker">
+        <h2>Which game do you want?</h2>
+        <button class="today-game" onclick="loadToday()">
+            <strong>Today's Game</strong>
+            <span id="todayLabel"></span>
+        </button>
+        <button onclick="loadYesterday()">Yesterday's Game</button>
+        <div class="date-picker-row">
+            <input type="date" id="gameDate">
+            <button onclick="loadPickedDate()">Choose Date</button>
+        </div>
+    </section>
 
-    <br><br>
+    <main id="trackerView" class="hidden">
+        <button class="change-game" onclick="showGamePicker()">&larr; Choose Another Game</button>
 
-    <input type="date" id="gameDate">
-    <button onclick="loadPickedDate()">Load Date</button>
-</div>
+        <div class="navigation-controls">
+            <button onclick="previousEvent()">Previous Event</button>
+            <button onclick="nextAtBat()">Next At-Bat</button>
+            <button onclick="nextInning()">Next Half-Inning</button>
+            <button class="jump-live" onclick="jumpToLive()">Jump to Live</button>
+        </div>
 
-   <button onclick="previousEvent()">
-    Previous Event
-</button>
-    
-    <button onclick="nextAtBat()">
-        Next At-Bat
-    </button>
+        <div id="status">Loading...</div>
 
-    <button onclick="nextInning()">
-        Next Inning
-    </button>
+        <button id="batterInfo" onclick="nextEvent()">
+            Batter info will appear here.
+        </button>
 
-    <div id="status">
-    Loading...
-</div>
-
-<button id="batterInfo" onclick="nextEvent()">
-    Batter info will appear here.
-</button>
-
-<div id="eventList"></div>
+        <div id="eventList"></div>
+    </main>
 <div id="lineupModal" class="modal hidden">
     <div class="modal-content">
         <button class="modal-close" onclick="closeLineup()">&times;</button>
@@ -51,7 +51,7 @@
         <div id="lineupBody"></div>
     </div>
 </div>
-    <script src="script.js?v=27"></script>
+    <script src="script.js?v=28"></script>
 
 </body>
 </html>

@@ -12,6 +12,67 @@ h1 {
     font-size: 25px;
 }
 
+.game-picker {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 18px rgba(0, 45, 98, 0.12);
+    margin: 24px auto;
+    max-width: 460px;
+    padding: 24px 18px;
+}
+
+.game-picker h2 {
+    color: #002D62;
+    font-size: 20px;
+    margin: 0 0 16px;
+}
+
+.today-game {
+    display: flex;
+    flex-direction: column;
+    margin: 8px auto;
+    min-width: 220px;
+}
+
+.today-game span {
+    font-size: 12px;
+    font-weight: normal;
+    margin-top: 3px;
+    opacity: 0.82;
+}
+
+.date-picker-row {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 12px;
+}
+
+.date-picker-row input {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 16px;
+    padding: 10px;
+}
+
+.change-game {
+    background: transparent;
+    color: #002D62;
+    font-size: 14px;
+    padding: 8px 10px;
+}
+
+.navigation-controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.jump-live {
+    background: #EB6E1F;
+}
+
 button {
     padding: 12px 18px;
     margin: 5px;
@@ -104,6 +165,16 @@ button:hover {
     text-align: left;
     font-size: 14px;
     box-shadow: 0 0 4px rgba(0,0,0,0.08);
+}
+
+.away-event {
+    background: #f8fbff;
+    border-left: 4px solid #9fb6cf;
+}
+
+.home-event {
+    background: #fffaf6;
+    border-left: 4px solid #efb38c;
 }
 
 .event-icon {
@@ -267,6 +338,88 @@ button:hover {
 }
 .count-dots {
     font-size: 0.8em;
+}
+
+.between-play-info {
+    align-items: center;
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    margin-top: 12px;
+}
+
+.batting-queue {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+    gap: 3px;
+    text-align: left;
+}
+
+.base-diamond {
+    height: 58px;
+    position: relative;
+    width: 72px;
+}
+
+.base {
+    background: white;
+    border: 2px solid #002D62;
+    height: 13px;
+    position: absolute;
+    transform: rotate(45deg);
+    width: 13px;
+}
+
+.base.occupied {
+    background: #EB6E1F;
+    box-shadow: 0 0 0 2px rgba(235, 110, 31, 0.18);
+}
+
+.base.second { left: 28px; top: 2px; }
+.base.third { left: 8px; top: 23px; }
+.base.first { right: 8px; top: 23px; }
+
+.home-plate {
+    background: #002D62;
+    clip-path: polygon(0 0, 100% 0, 82% 72%, 50% 100%, 18% 72%);
+    height: 12px;
+    left: 29px;
+    position: absolute;
+    top: 44px;
+    width: 16px;
+}
+
+.field-location {
+    align-items: center;
+    color: #64748b;
+    display: flex;
+    flex-direction: column;
+    font-size: 11px;
+    margin: 8px 0 2px 28px;
+    width: 150px;
+}
+
+.field-location svg {
+    height: auto;
+    width: 150px;
+}
+
+.outfield-grass { fill: #dcebdc; stroke: #7aa67a; stroke-width: 2; }
+.infield-dirt { fill: #ead8bd; stroke: #c7a77b; stroke-width: 1.5; }
+.infield-line { fill: #eef5e8; stroke: white; stroke-width: 2; }
+.foul-line { fill: none; stroke: white; stroke-width: 2; }
+.ball-marker { fill: #EB6E1F; stroke: white; stroke-width: 2; }
+.ball-marker.caught { fill: #002D62; }
+.catch-ring { fill: none; stroke: #EB6E1F; stroke-width: 3; }
+
+@media (max-width: 520px) {
+    body { padding: 12px; }
+    .navigation-controls button { font-size: 13px; padding: 10px 11px; }
+    .between-play-info { gap: 10px; }
+    .field-location { margin-left: 28px; width: 125px; }
+    .field-location svg { width: 125px; }
 }
 .team-link {
     padding: 0;

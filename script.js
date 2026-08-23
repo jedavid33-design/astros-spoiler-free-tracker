@@ -1,7 +1,7 @@
 const ASTROS_TEAM_ID = 117;
 
-let GAME_DATE = "2026-05-29";
-let SAVE_KEY = `astros-tracker-${GAME_DATE}`;
+let GAME_DATE = "";
+let SAVE_KEY = "";
 
 let events = [];
 let revealedIndexes = [];
@@ -17,18 +17,31 @@ function setGameDate(newDate) {
     SAVE_KEY = `astros-tracker-${GAME_DATE}`;
     events = [];
     revealedIndexes = [];
+    document.getElementById("gamePicker").classList.add("hidden");
+    document.getElementById("trackerView").classList.remove("hidden");
     loadGame();
 }
 
+function getLocalDate(offsetDays = 0) {
+    const date = new Date();
+    date.setDate(date.getDate() + offsetDays);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
 function loadToday() {
-    const today = new Date().toISOString().split("T")[0];
-    setGameDate(today);
+    setGameDate(getLocalDate());
 }
 
 function loadYesterday() {
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    setGameDate(yesterday.toISOString().split("T")[0]);
+    setGameDate(getLocalDate(-1));
+}
+
+function showGamePicker() {
+    document.getElementById("trackerView").classList.add("hidden");
+    document.getElementById("gamePicker").classList.remove("hidden");
 }
 
 function loadPickedDate() {
@@ -108,12 +121,37 @@ function buildEvents(data) {
     events = [];
 
     const plays = data.liveData.plays.allPlays;
+    let occupiedBases = { first: null, second: null, third: null };
+    let previousHalf = "";
 
     plays.forEach((play, playNumber) => {
         const inning = play.about.inning;
         const half = play.about.halfInning.toUpperCase();
+        const halfKey = `${half}-${inning}`;
         const batter = play.matchup.batter.fullName;
         const pitcher = play.matchup.pitcher.fullName;
+        const battingSide = half === "TOP" ? "away" : "home";
+        const appliedMovements = new Set();
+
+        if (previousHalf && previousHalf !== halfKey) {
+            occupiedBases = { first: null, second: null, third: null };
+        }
+        previousHalf = halfKey;
+
+        function applyMovementsThrough(playEventIndex = Infinity) {
+            (play.runners || []).forEach((runner, runnerIndex) => {
+                const movementIndex = runner.details?.playIndex;
+                if (appliedMovements.has(runnerIndex) || movementIndex > playEventIndex) return;
+
+                const startKey = baseNameToKey(runner.movement?.start);
+                const endKey = baseNameToKey(runner.movement?.end);
+                if (startKey) occupiedBases[startKey] = null;
+                if (endKey && !runner.movement?.isOut) {
+                    occupiedBases[endKey] = runner.details?.runner?.fullName || "Runner";
+                }
+                appliedMovements.add(runnerIndex);
+            });
+        }
 
         play.playEvents.forEach(event => {
             const desc = event.details?.description;
@@ -138,6 +176,8 @@ if (shouldHide) {
     return;
 }
 
+            applyMovementsThrough(event.index ?? -1);
+
             events.push({
                 inning: `${half} ${inning}`,
                 batter: batter,
@@ -147,13 +187,18 @@ if (shouldHide) {
                 balls: event.count?.balls,
                 strikes: event.count?.strikes,
                 outs: event.count?.outs,
-                pitchNumber: event.pitchNumber
+                pitchNumber: event.pitchNumber,
+                battingSide,
+                bases: { ...occupiedBases },
+                hitLocation: getHitLocation(event),
+                playEventIndex: event.index
             });
         });
 
         const resultText = play.result?.description;
 
         if (resultText) {
+            applyMovementsThrough();
             events.push({
                 inning: `${half} ${inning}`,
                 batter: batter,
@@ -167,7 +212,10 @@ if (shouldHide) {
                 awayScore: play.result?.awayScore,
                 homeScore: play.result?.homeScore,
                 eventType: play.result?.eventType,
-                battingSide: half === "TOP" ? "away" : "home"
+                battingSide,
+                bases: { ...occupiedBases },
+                isResult: true,
+                hitLocation: getPlayHitLocation(play)
             });
         }
     });
@@ -175,6 +223,34 @@ if (shouldHide) {
     if (data.gameData.status?.abstractGameState === "Final") {
         events.push(buildGameCompleteEvent(data));
     }
+}
+
+function baseNameToKey(baseName) {
+    return ({ "1B": "first", "2B": "second", "3B": "third" })[baseName] || null;
+}
+
+function getHitLocation(event) {
+    const coordinates = event.hitData?.coordinates;
+    if (!coordinates) return null;
+
+    const x = Number(coordinates.coordX);
+    const y = Number(coordinates.coordY);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+
+    return {
+        x,
+        y,
+        trajectory: event.hitData?.trajectory || "",
+        location: event.hitData?.location || ""
+    };
+}
+
+function getPlayHitLocation(play) {
+    for (let index = play.playEvents.length - 1; index >= 0; index--) {
+        const location = getHitLocation(play.playEvents[index]);
+        if (location) return location;
+    }
+    return null;
 }
 
 function formatGameTime(dateValue, timeZone) {
@@ -352,6 +428,55 @@ function getPitcherPitchCount(pitcherName) {
 
     return count;
 }
+
+function getDisplayState() {
+    const currentIndex = getCurrentIndex();
+    if (events.length === 0) return null;
+
+    if (currentIndex === -1) {
+        return { event: events[0], preview: true, previous: null };
+    }
+
+    const current = events[currentIndex];
+    const next = events[currentIndex + 1];
+    if (current.isResult && next && next.kind !== "game-complete") {
+        return { event: next, preview: true, previous: current };
+    }
+
+    return { event: current, preview: false, previous: null };
+}
+
+function renderBaseDiamond(bases = {}) {
+    const occupied = key => bases[key] ? " occupied" : "";
+    const label = [bases.first && `First: ${bases.first}`, bases.second && `Second: ${bases.second}`, bases.third && `Third: ${bases.third}`]
+        .filter(Boolean).join(", ") || "Bases empty";
+
+    return `
+        <div class="base-diamond" aria-label="${label}" title="${label}">
+            <span class="base second${occupied("second")}"></span>
+            <span class="base third${occupied("third")}"></span>
+            <span class="base first${occupied("first")}"></span>
+            <span class="home-plate"></span>
+        </div>
+    `;
+}
+
+function getBattingQueue(event) {
+    if (!event || !currentGameData) return { onDeck: "Not available", inHole: "Not available" };
+
+    const maxAtBat = Math.max(-1, getCurrentIndex() === -1 ? -1 : events[getCurrentIndex()].atBat);
+    const lineup = getLineupAtPoint(event.battingSide, maxAtBat);
+    const batterIndex = lineup.findIndex(player => player.name === event.batter);
+    if (batterIndex === -1 || lineup.length < 2) {
+        return { onDeck: "Not available", inHole: "Not available" };
+    }
+
+    return {
+        onDeck: lineup[(batterIndex + 1) % lineup.length]?.name || "Not available",
+        inHole: lineup[(batterIndex + 2) % lineup.length]?.name || "Not available"
+    };
+}
+
 function updateStatus() {
     const currentIndex = getCurrentIndex();
 const score = getSpoilerFreeScore();
@@ -390,7 +515,10 @@ document.getElementById("status").innerHTML = `
         return;
     }
 
-    const event = events[currentIndex];
+    const displayState = getDisplayState();
+    const event = displayState?.event;
+
+    if (!event) return;
 
     if (event.kind === "game-complete") {
         document.getElementById("batterInfo").innerHTML = `
@@ -402,24 +530,16 @@ document.getElementById("status").innerHTML = `
     
     const pitcherPitchCount = getPitcherPitchCount(event.pitcher);
     
-    const countText =
-        event.balls !== undefined && event.strikes !== undefined
-            ? `${event.balls}-${event.strikes}`
-            : "N/A";
-
-    const outsText =
-        event.outs !== undefined
-            ? `${event.outs} out(s)`
-            : "N/A";
-
-    const pitchText =
-        event.pitchNumber
-            ? `Pitch #${event.pitchNumber}`
-            : "Plate appearance result";
-
-    const balls = event.balls ?? 0;
-const strikes = event.strikes ?? 0;
-const outs = event.outs ?? 0;
+    const balls = displayState.preview ? 0 : (event.balls ?? 0);
+const strikes = displayState.preview ? 0 : (event.strikes ?? 0);
+const inningChanged = displayState.preview && displayState.previous?.inning !== event.inning;
+const outs = displayState.preview
+    ? (inningChanged ? 0 : (displayState.previous?.outs ?? 0))
+    : (event.outs ?? 0);
+const visibleBases = displayState.preview && displayState.previous
+    ? displayState.previous.bases
+    : event.bases;
+const queue = getBattingQueue(event);
 
 const ballDots =
     "&#9679; ".repeat(balls) +
@@ -446,6 +566,14 @@ document.getElementById("batterInfo").innerHTML = `
         <span>&#9918; <span class="count-dots">${ballDots}</span></span>
 <span><strong>K</strong> <span class="count-dots">${strikeDots}</span></span>
 <span>&#10060; <span class="count-dots">${outDots}</span></span>
+    </div>
+
+    <div class="between-play-info">
+        ${renderBaseDiamond(visibleBases)}
+        <div class="batting-queue">
+            <span><strong>On deck:</strong> ${queue.onDeck}</span>
+            <span><strong>In the hole:</strong> ${queue.inHole}</span>
+        </div>
     </div>
 `;
 }
@@ -480,7 +608,7 @@ function addEventCard(index) {
     const row = document.createElement("div");
     row.className = event.kind === "game-complete"
         ? "event-row game-complete-card"
-        : "event-row";
+        : `event-row ${event.battingSide === "away" ? "away-event" : "home-event"}`;
 
     if (event.kind === "game-complete") {
         const details = event.details;
@@ -527,12 +655,37 @@ function addEventCard(index) {
         return;
     }
 
+    const fieldGraphic = event.isResult && event.hitLocation
+        ? renderFieldLocation(event.hitLocation, event.text)
+        : "";
+
     row.innerHTML = `
         <span class="event-icon">${icon}</span>
         <span class="event-text">${event.text}</span>
+        ${fieldGraphic}
     `;
 
     document.getElementById("eventList").prepend(row);
+}
+
+function renderFieldLocation(location, description) {
+    const x = Math.max(10, Math.min(240, location.x));
+    const y = Math.max(10, Math.min(240, location.y));
+    const caught = /flies out|lines out|pops out|caught|sacrifice fly/i.test(description);
+
+    return `
+        <div class="field-location" aria-label="Ball in play location">
+            <svg viewBox="0 0 250 250" role="img" aria-label="Ball ${caught ? "caught" : "played"} at this field location">
+                <path class="outfield-grass" d="M18 205 Q125 4 232 205 L125 242 Z"></path>
+                <path class="infield-dirt" d="M125 128 L181 184 L125 240 L69 184 Z"></path>
+                <path class="foul-line" d="M125 240 L18 205 M125 240 L232 205"></path>
+                <path class="infield-line" d="M125 155 L154 184 L125 213 L96 184 Z"></path>
+                <circle class="ball-marker${caught ? " caught" : ""}" cx="${x}" cy="${y}" r="7"></circle>
+                ${caught ? `<circle class="catch-ring" cx="${x}" cy="${y}" r="12"></circle>` : ""}
+            </svg>
+            <span>${caught ? "Caught here" : "Played here"}</span>
+        </div>
+    `;
 }
 
 function redrawFeed() {
@@ -548,6 +701,22 @@ function redrawFeed() {
 function revealIndex(index) {
     revealedIndexes.push(index);
     addEventCard(index);
+    saveProgress();
+    updateStatus();
+}
+
+function revealThrough(targetIndex) {
+    const currentIndex = getCurrentIndex();
+    const lastIndex = Math.min(targetIndex, events.length - 1);
+    if (lastIndex <= currentIndex) {
+        updateStatus();
+        return;
+    }
+
+    for (let index = currentIndex + 1; index <= lastIndex; index++) {
+        revealedIndexes.push(index);
+        addEventCard(index);
+    }
     saveProgress();
     updateStatus();
 }
@@ -582,7 +751,10 @@ function nextAtBat() {
     const currentIndex = getCurrentIndex();
 
     if (currentIndex === -1) {
-        nextEvent();
+        const firstAtBat = events[0]?.atBat;
+        let target = 0;
+        while (target < events.length && events[target].atBat === firstAtBat) target++;
+        revealThrough(target - 1);
         return;
     }
 
@@ -596,16 +768,17 @@ function nextAtBat() {
         nextIndex++;
     }
 
-    if (nextIndex < events.length) {
-        revealIndex(nextIndex);
-    }
+    revealThrough(nextIndex - 1);
 }
 
 function nextInning() {
     const currentIndex = getCurrentIndex();
 
     if (currentIndex === -1) {
-        nextEvent();
+        const firstInning = events[0]?.inning;
+        let target = 0;
+        while (target < events.length && events[target].inning === firstInning) target++;
+        revealThrough(target - 1);
         return;
     }
 
@@ -619,9 +792,13 @@ function nextInning() {
         nextIndex++;
     }
 
-    if (nextIndex < events.length) {
-        revealIndex(nextIndex);
-    }
+    revealThrough(nextIndex - 1);
+}
+
+function jumpToLive() {
+    if (events.length === 0) return;
+    const confirmed = confirm("Reveal every event currently available and jump to live?");
+    if (confirmed) revealThrough(events.length - 1);
 }
 function showLineup(teamSide) {
     if (!currentGameData) {
@@ -691,18 +868,20 @@ function getLineupAtPoint(teamSide, maxAtBat) {
         // First time we see a lineup spot = starter.
         if (!lineupMap.has(lineupSpot)) {
             lineupMap.set(lineupSpot, {
+                spot: lineupSpot,
                 name: batterInfo.person.fullName,
                 position: batterInfo.position?.abbreviation || "\u2014"
             });
         }
 
         // After revealed point, do not apply future substitutions.
-        if (maxAtBat !== -1 && playIndex > maxAtBat) {
+        if (playIndex > maxAtBat) {
             return;
         }
 
         // Up to revealed point, update if a new player appears in that spot.
         lineupMap.set(lineupSpot, {
+            spot: lineupSpot,
             name: batterInfo.person.fullName,
             position: batterInfo.position?.abbreviation || "\u2014"
         });
@@ -715,8 +894,15 @@ function getLineupAtPoint(teamSide, maxAtBat) {
 function closeLineup() {
     document.getElementById("lineupModal").classList.add("hidden");
 }
-loadGame();
+document.getElementById("todayLabel").textContent = new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric"
+}).format(new Date());
+document.getElementById("gameDate").value = getLocalDate();
 
 setInterval(() => {
-    loadGame(false);
+    if (GAME_DATE && !document.getElementById("trackerView").classList.contains("hidden")) {
+        loadGame(false);
+    }
 }, 15000);
