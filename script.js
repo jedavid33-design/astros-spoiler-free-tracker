@@ -749,50 +749,65 @@ function previousEvent() {
 
 function nextAtBat() {
     const currentIndex = getCurrentIndex();
+    if (events.length === 0) return;
 
-    if (currentIndex === -1) {
-        const firstAtBat = events[0]?.atBat;
-        let target = 0;
-        while (target < events.length && events[target].atBat === firstAtBat) target++;
-        revealThrough(target - 1);
-        return;
-    }
+    let scopeStart = currentIndex === -1 ? 0 : currentIndex;
 
-    const currentAtBat = events[currentIndex].atBat;
-    let nextIndex = currentIndex + 1;
-
-    while (
-        nextIndex < events.length &&
-        events[nextIndex].atBat === currentAtBat
+    // At a completed plate-appearance boundary, advance through the upcoming
+    // batter instead of trying to finish the already-completed batter again.
+    if (
+        currentIndex >= 0 &&
+        events[currentIndex].isResult &&
+        events[currentIndex + 1]?.kind !== "game-complete"
     ) {
-        nextIndex++;
+        scopeStart = currentIndex + 1;
     }
 
-    revealThrough(nextIndex - 1);
+    const targetAtBat = events[scopeStart]?.atBat;
+    if (targetAtBat === undefined) return;
+
+    let boundaryIndex = scopeStart;
+    while (
+        boundaryIndex < events.length &&
+        events[boundaryIndex].atBat === targetAtBat
+    ) {
+        boundaryIndex++;
+    }
+
+    revealThrough(boundaryIndex - 1);
 }
 
 function nextInning() {
     const currentIndex = getCurrentIndex();
+    if (events.length === 0) return;
 
-    if (currentIndex === -1) {
-        const firstInning = events[0]?.inning;
-        let target = 0;
-        while (target < events.length && events[target].inning === firstInning) target++;
-        revealThrough(target - 1);
-        return;
-    }
+    let scopeStart = currentIndex === -1 ? 0 : currentIndex;
+    const nextEvent = events[currentIndex + 1];
 
-    const currentInning = events[currentIndex].inning;
-    let nextIndex = currentIndex + 1;
-
-    while (
-        nextIndex < events.length &&
-        events[nextIndex].inning === currentInning
+    // If the previous half-inning is already complete, advance through the
+    // upcoming half rather than stopping again at the same boundary.
+    if (
+        currentIndex >= 0 &&
+        events[currentIndex].isResult &&
+        nextEvent &&
+        nextEvent.kind !== "game-complete" &&
+        nextEvent.inning !== events[currentIndex].inning
     ) {
-        nextIndex++;
+        scopeStart = currentIndex + 1;
     }
 
-    revealThrough(nextIndex - 1);
+    const targetInning = events[scopeStart]?.inning;
+    if (!targetInning) return;
+
+    let boundaryIndex = scopeStart;
+    while (
+        boundaryIndex < events.length &&
+        events[boundaryIndex].inning === targetInning
+    ) {
+        boundaryIndex++;
+    }
+
+    revealThrough(boundaryIndex - 1);
 }
 
 function jumpToLive() {
