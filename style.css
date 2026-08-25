@@ -69,6 +69,12 @@ h1 {
     justify-content: center;
 }
 
+.forward-nav {
+    background: var(--active-team-color, #002D62);
+    color: var(--active-team-text, white);
+    transition: background-color 160ms ease, color 160ms ease;
+}
+
 .jump-live {
     background: #EB6E1F;
 }
@@ -106,7 +112,7 @@ button:hover {
     padding: 16px;
     background: white;
     color: #002D62;
-    border-left: 6px solid #EB6E1F;
+    border-left: 6px solid var(--active-team-color, #EB6E1F);
     border-radius: 12px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
     font-size: .8em;
@@ -167,14 +173,9 @@ button:hover {
     box-shadow: 0 0 4px rgba(0,0,0,0.08);
 }
 
-.away-event {
-    background: #f8fbff;
-    border-left: 4px solid #9fb6cf;
-}
-
-.home-event {
-    background: #fffaf6;
-    border-left: 4px solid #efb38c;
+.team-event {
+    background: white;
+    border-left: 5px solid var(--event-team-color, #64748B);
 }
 
 .event-icon {
@@ -185,6 +186,38 @@ button:hover {
 
 .event-text {
     vertical-align: middle;
+}
+
+.important-event .event-text {
+    font-weight: 700;
+}
+
+.low-emphasis .event-text {
+    font-weight: 400;
+}
+
+.location-available {
+    cursor: pointer;
+}
+
+.location-available:hover,
+.location-available:focus-visible {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--event-team-color) 32%, transparent);
+    outline: none;
+}
+
+.field-location-hint {
+    border: 1px solid color-mix(in srgb, var(--event-team-color) 50%, #CBD5E1);
+    border-radius: 999px;
+    color: #475569;
+    display: inline-flex;
+    float: right;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1;
+    margin: 1px 0 0 10px;
+    padding: 4px 6px;
+    text-transform: uppercase;
 }
 
 .game-complete-card {
@@ -393,30 +426,47 @@ button:hover {
 
 .field-location {
     line-height: 0;
-    margin: 6px auto 0;
-    width: 96px;
+    margin: 10px auto 0;
+    width: min(76vw, 340px);
 }
 
 .field-location svg {
     display: block;
     height: auto;
-    width: 96px;
+    width: 100%;
 }
 
 .outfield-grass { fill: #dcebdc; stroke: #7aa67a; stroke-width: 2; }
 .infield-dirt { fill: #ead8bd; stroke: #c7a77b; stroke-width: 1.5; }
 .infield-line { fill: #eef5e8; stroke: white; stroke-width: 2; }
 .foul-line { fill: none; stroke: white; stroke-width: 2; }
+.pitchers-mound { fill: #d7b78a; stroke: white; stroke-width: 1; }
+.field-base { fill: white; stroke: #94a3b8; stroke-width: 1; }
 .ball-marker { fill: #EB6E1F; stroke: white; stroke-width: 2; }
 .ball-marker.caught { fill: #002D62; }
 .catch-ring { fill: none; stroke: #EB6E1F; stroke-width: 3; }
+
+.field-modal-content {
+    max-width: 470px;
+    text-align: center;
+}
+
+.field-modal-content h2 {
+    margin: 0 34px 8px;
+}
+
+.field-location-title {
+    font-size: 14px;
+    line-height: 1.35;
+    margin: 0 auto 4px;
+    max-width: 390px;
+}
 
 @media (max-width: 520px) {
     body { padding: 12px; }
     .navigation-controls button { font-size: 13px; padding: 10px 11px; }
     .between-play-info { gap: 10px; }
-    .field-location,
-    .field-location svg { width: 88px; }
+    .field-location-hint { font-size: 9px; }
 }
 .team-link {
     padding: 0;

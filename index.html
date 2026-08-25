@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Astros Spoiler-Free Tracker</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="stylesheet" href="style.css?v=8">
 <link rel="apple-touch-icon" href="icon.PNG">
 <link rel="icon" type="image/png" href="icon.PNG">
 </head>
@@ -30,9 +30,9 @@
         <button class="change-game" onclick="showGamePicker()">&larr; Choose Another Game</button>
 
         <div class="navigation-controls">
-            <button onclick="previousEvent()">Previous Event</button>
-            <button onclick="nextAtBat()">Next At-Bat</button>
-            <button onclick="nextInning()">Next Half-Inning</button>
+            <button class="previous-nav" onclick="previousEvent()">Previous Event</button>
+            <button class="forward-nav" onclick="nextAtBat()">Next At-Bat</button>
+            <button class="forward-nav" onclick="nextInning()">Next Half-Inning</button>
             <button class="jump-live" onclick="jumpToLive()">Jump to Live</button>
         </div>
 
@@ -51,7 +51,15 @@
         <div id="lineupBody"></div>
     </div>
 </div>
-    <script src="script.js?v=30"></script>
+<div id="fieldLocationModal" class="modal hidden" onclick="if (event.target === this) closeFieldLocation()">
+    <div class="modal-content field-modal-content">
+        <button class="modal-close" onclick="closeFieldLocation()" aria-label="Close ball location">&times;</button>
+        <h2>Ball Location</h2>
+        <p id="fieldLocationTitle" class="field-location-title"></p>
+        <div id="fieldLocationBody"></div>
+    </div>
+</div>
+    <script src="script.js?v=31"></script>
 
 </body>
 </html>

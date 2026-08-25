@@ -1,5 +1,16 @@
 const ASTROS_TEAM_ID = 117;
 
+const TEAM_PRIMARY_COLORS = {
+    108: "#BA0021", 109: "#A71930", 110: "#DF4601", 111: "#BD3039",
+    112: "#0E3386", 113: "#C6011F", 114: "#00385D", 115: "#33006F",
+    116: "#0C2340", 117: "#EB6E1F", 118: "#004687", 119: "#005A9C",
+    120: "#AB0003", 121: "#002D72", 133: "#003831", 134: "#FDB827",
+    135: "#2F241D", 136: "#0C2C56", 137: "#FD5A1E", 138: "#C41E3A",
+    139: "#092C5C", 140: "#003278", 141: "#134A8E", 142: "#002B5C",
+    143: "#E81828", 144: "#CE1141", 145: "#27251F", 146: "#00A3E0",
+    147: "#0C2340", 158: "#12284B"
+};
+
 let GAME_DATE = "";
 let SAVE_KEY = "";
 
@@ -8,6 +19,8 @@ let revealedIndexes = [];
 
 let awayTeamName = "";
 let homeTeamName = "";
+let awayTeamId = null;
+let homeTeamId = null;
 let currentGameData = null;
 let currentGamePk = null;
 let currentGameBroadcasts = [];
@@ -91,6 +104,8 @@ currentGameBroadcasts = scheduledGame.broadcasts || [];
 
 awayTeamName = feedData.gameData.teams.away.teamName;
 homeTeamName = feedData.gameData.teams.home.teamName;
+awayTeamId = feedData.gameData.teams.away.id;
+homeTeamId = feedData.gameData.teams.home.id;
     
     buildEvents(feedData);
 
@@ -131,6 +146,7 @@ function buildEvents(data) {
         const batter = play.matchup.batter.fullName;
         const pitcher = play.matchup.pitcher.fullName;
         const battingSide = half === "TOP" ? "away" : "home";
+        const battingTeamId = data.gameData.teams[battingSide]?.id;
         const appliedMovements = new Set();
 
         if (previousHalf && previousHalf !== halfKey) {
@@ -139,13 +155,24 @@ function buildEvents(data) {
         previousHalf = halfKey;
 
         function applyMovementsThrough(playEventIndex = Infinity) {
-            (play.runners || []).forEach((runner, runnerIndex) => {
+            const pendingMovements = (play.runners || [])
+                .map((runner, runnerIndex) => ({ runner, runnerIndex }))
+                .filter(({ runner, runnerIndex }) => {
                 const movementIndex = runner.details?.playIndex;
-                if (appliedMovements.has(runnerIndex) || movementIndex > playEventIndex) return;
+                    return !appliedMovements.has(runnerIndex) &&
+                        (movementIndex === undefined || movementIndex <= playEventIndex);
+                });
 
+            // Base advances on the same play are simultaneous. Clear every
+            // starting base first, then place all surviving runners. This
+            // prevents an advancing runner from erasing the batter at first.
+            pendingMovements.forEach(({ runner }) => {
                 const startKey = baseNameToKey(runner.movement?.start);
-                const endKey = baseNameToKey(runner.movement?.end);
                 if (startKey) occupiedBases[startKey] = null;
+            });
+
+            pendingMovements.forEach(({ runner, runnerIndex }) => {
+                const endKey = baseNameToKey(runner.movement?.end);
                 if (endKey && !runner.movement?.isOut) {
                     occupiedBases[endKey] = runner.details?.runner?.fullName || "Runner";
                 }
@@ -158,25 +185,10 @@ function buildEvents(data) {
 
             if (!desc) return;
 
-const lowerDesc = desc.toLowerCase();
-
-const hiddenEvents = [
-    "mound visit",
-    "batter timeout",
-    "offensive timeout",
-    "defensive timeout",
-    "on-field delay"
-];
-
-const shouldHide = hiddenEvents.some(hidden =>
-    lowerDesc.includes(hidden)
-);
-
-if (shouldHide) {
-    return;
-}
-
             applyMovementsThrough(event.index ?? -1);
+
+            const isPitch = event.isPitch === true;
+            const isTimerViolation = /pitch timer violation/i.test(desc);
 
             events.push({
                 inning: `${half} ${inning}`,
@@ -188,7 +200,12 @@ if (shouldHide) {
                 strikes: event.count?.strikes,
                 outs: event.count?.outs,
                 pitchNumber: event.pitchNumber,
+                isPitch,
+                countsAsPitch: isPitch && !isTimerViolation,
+                isTimerViolation,
                 battingSide,
+                battingTeamId,
+                teamColor: getTeamColor(battingTeamId),
                 bases: { ...occupiedBases },
                 hitLocation: getHitLocation(event),
                 playEventIndex: event.index
@@ -213,6 +230,8 @@ if (shouldHide) {
                 homeScore: play.result?.homeScore,
                 eventType: play.result?.eventType,
                 battingSide,
+                battingTeamId,
+                teamColor: getTeamColor(battingTeamId),
                 bases: { ...occupiedBases },
                 isResult: true,
                 hitLocation: getPlayHitLocation(play)
@@ -229,6 +248,57 @@ function baseNameToKey(baseName) {
     return ({ "1B": "first", "2B": "second", "3B": "third" })[baseName] || null;
 }
 
+function getTeamColor(teamId) {
+    return TEAM_PRIMARY_COLORS[Number(teamId)] || "#64748B";
+}
+
+function getReadableTextColor(hexColor) {
+    const hex = hexColor.replace("#", "");
+    const red = parseInt(hex.slice(0, 2), 16);
+    const green = parseInt(hex.slice(2, 4), 16);
+    const blue = parseInt(hex.slice(4, 6), 16);
+    const luminance = (0.299 * red + 0.587 * green + 0.114 * blue) / 255;
+    return luminance > 0.62 ? "#172033" : "#FFFFFF";
+}
+
+function calibrateHitLocation(location) {
+    let x = location.x;
+    let y = location.y;
+    const position = String(location.location || "");
+    const infieldAnchors = {
+        "1": { x: 125, y: 165, weight: 0.72 },
+        "2": { x: 125, y: 198, weight: 0.55 },
+        "3": { x: 157, y: 170, weight: 0.36 },
+        "4": { x: 150, y: 151, weight: 0.55 },
+        "5": { x: 93, y: 170, weight: 0.36 },
+        "6": { x: 100, y: 159, weight: 0.38 }
+    };
+    const infieldAnchor = infieldAnchors[position];
+
+    if (infieldAnchor) {
+        x += (infieldAnchor.x - x) * infieldAnchor.weight;
+        y += (infieldAnchor.y - y) * infieldAnchor.weight;
+    } else if (position === "7" || position === "9") {
+        // The MLB coordinate grid compresses many balls toward the centerline
+        // when placed on our neutral field. Expand moderately toward the line,
+        // tapering the correction so already-accurate extreme examples remain.
+        const offset = x - 125;
+        const expansion = 1 + 0.35 * (1 - Math.min(Math.abs(offset), 100) / 100);
+        x = 125 + offset * expansion;
+    }
+
+    if (location.trajectory === "ground_ball" && ["7", "8", "9"].includes(position)) {
+        const shallowOutfieldY = position === "8" ? 105 : 136;
+        const weight = position === "8" ? 0.30 : 0.45;
+        y += (shallowOutfieldY - y) * weight;
+    }
+
+    return {
+        x: Math.max(10, Math.min(240, x)),
+        y: Math.max(10, Math.min(225, y))
+    };
+}
+
 function getHitLocation(event) {
     const coordinates = event.hitData?.coordinates;
     if (!coordinates) return null;
@@ -237,12 +307,17 @@ function getHitLocation(event) {
     const y = Number(coordinates.coordY);
     if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
 
-    return {
+    const location = {
         x,
         y,
         trajectory: event.hitData?.trajectory || "",
-        location: event.hitData?.location || ""
+        location: event.hitData?.location || "",
+        totalDistance: Number(event.hitData?.totalDistance) || null,
+        launchAngle: Number(event.hitData?.launchAngle) || null
     };
+
+    const calibrated = calibrateHitLocation(location);
+    return { ...location, plotX: calibrated.x, plotY: calibrated.y };
 }
 
 function getPlayHitLocation(play) {
@@ -420,13 +495,21 @@ function getPitcherPitchCount(pitcherName) {
 
         if (
             event.pitcher === pitcherName &&
-            event.pitchNumber
+            event.countsAsPitch
         ) {
             count++;
         }
     });
 
     return count;
+}
+
+function updateActiveTeamStyle(event) {
+    if (!event) return;
+    const color = event.teamColor || getTeamColor(event.battingTeamId);
+    const trackerView = document.getElementById("trackerView");
+    trackerView.style.setProperty("--active-team-color", color);
+    trackerView.style.setProperty("--active-team-text", getReadableTextColor(color));
 }
 
 function getDisplayState() {
@@ -481,6 +564,8 @@ function updateStatus() {
     const currentIndex = getCurrentIndex();
 const score = getSpoilerFreeScore();
 const totals = getSpoilerFreeHitsErrors();
+const activeDisplay = currentIndex === -1 ? events[0] : getDisplayState()?.event;
+updateActiveTeamStyle(activeDisplay);
     
 
     
@@ -583,7 +668,7 @@ function getEventIcon(event) {
 
     const text = event.text.toLowerCase();
 
-    if (event.pitchNumber) {
+    if (event.isPitch) {
         const numbers = ["", "&#9312;", "&#9313;", "&#9314;", "&#9315;", "&#9316;", "&#9317;", "&#9318;", "&#9319;", "&#9320;"];
         return numbers[event.pitchNumber] || `P${event.pitchNumber}`;
     }
@@ -601,6 +686,18 @@ function getEventIcon(event) {
     return "&#8226;";
 }
 
+function isLowEmphasisEvent(event) {
+    if (event.isResult) return false;
+    if (event.isPitch) return true;
+
+    const text = event.text.toLowerCase();
+    return text.includes("steals") ||
+        text.includes("pickoff") ||
+        text.includes("defensive indifference") ||
+        text.includes("wild pitch") ||
+        text.includes("passed ball");
+}
+
 function addEventCard(index) {
     const event = events[index];
     const icon = getEventIcon(event);
@@ -608,7 +705,11 @@ function addEventCard(index) {
     const row = document.createElement("div");
     row.className = event.kind === "game-complete"
         ? "event-row game-complete-card"
-        : `event-row ${event.battingSide === "away" ? "away-event" : "home-event"}`;
+        : `event-row team-event ${isLowEmphasisEvent(event) ? "low-emphasis" : "important-event"}`;
+
+    if (event.kind !== "game-complete") {
+        row.style.setProperty("--event-team-color", event.teamColor || "#64748B");
+    }
 
     if (event.kind === "game-complete") {
         const details = event.details;
@@ -655,36 +756,65 @@ function addEventCard(index) {
         return;
     }
 
-    const fieldGraphic = event.isResult && event.hitLocation
-        ? renderFieldLocation(event.hitLocation, event.text)
-        : "";
+    const hasFieldLocation = event.isResult && event.hitLocation;
 
     row.innerHTML = `
         <span class="event-icon">${icon}</span>
         <span class="event-text">${event.text}</span>
-        ${fieldGraphic}
+        ${hasFieldLocation ? `<span class="field-location-hint">Field view</span>` : ""}
     `;
+
+    if (hasFieldLocation) {
+        row.classList.add("location-available");
+        row.setAttribute("role", "button");
+        row.setAttribute("tabindex", "0");
+        row.setAttribute("aria-label", `${event.text}. Open ball location.`);
+        row.addEventListener("click", () => openFieldLocation(index));
+        row.addEventListener("keydown", keyboardEvent => {
+            if (keyboardEvent.key === "Enter" || keyboardEvent.key === " ") {
+                keyboardEvent.preventDefault();
+                openFieldLocation(index);
+            }
+        });
+    }
 
     document.getElementById("eventList").prepend(row);
 }
 
 function renderFieldLocation(location, description) {
-    const x = Math.max(10, Math.min(240, location.x));
-    const y = Math.max(10, Math.min(240, location.y));
+    const x = location.plotX ?? location.x;
+    const y = location.plotY ?? location.y;
     const caught = /flies out|lines out|pops out|caught|sacrifice fly/i.test(description);
 
     return `
-        <div class="field-location" aria-label="Ball in play location">
+        <div class="field-location expanded" aria-label="Ball in play location">
             <svg viewBox="0 0 250 250" role="img" aria-label="Ball ${caught ? "caught" : "played"} at this field location">
                 <path class="outfield-grass" d="M15 105 Q125 -15 235 105 L125 205 Z"></path>
                 <path class="infield-dirt" d="M125 125 L170 166 L125 211 L80 166 Z"></path>
                 <path class="foul-line" d="M125 205 L15 105 M125 205 L235 105"></path>
                 <path class="infield-line" d="M125 143 L151 169 L125 195 L99 169 Z"></path>
+                <circle class="pitchers-mound" cx="125" cy="168" r="4"></circle>
+                <path class="field-base" d="M125 138 L130 143 L125 148 L120 143 Z"></path>
+                <path class="field-base" d="M151 164 L156 169 L151 174 L146 169 Z"></path>
+                <path class="field-base" d="M99 164 L104 169 L99 174 L94 169 Z"></path>
                 <circle class="ball-marker${caught ? " caught" : ""}" cx="${x}" cy="${y}" r="6"></circle>
                 ${caught ? `<circle class="catch-ring" cx="${x}" cy="${y}" r="10"></circle>` : ""}
             </svg>
         </div>
     `;
+}
+
+function openFieldLocation(index) {
+    const event = events[index];
+    if (!event?.hitLocation) return;
+
+    document.getElementById("fieldLocationTitle").textContent = event.text.replace(/^RESULT:\s*/, "");
+    document.getElementById("fieldLocationBody").innerHTML = renderFieldLocation(event.hitLocation, event.text);
+    document.getElementById("fieldLocationModal").classList.remove("hidden");
+}
+
+function closeFieldLocation() {
+    document.getElementById("fieldLocationModal").classList.add("hidden");
 }
 
 function redrawFeed() {
@@ -908,6 +1038,12 @@ function getLineupAtPoint(teamSide, maxAtBat) {
 function closeLineup() {
     document.getElementById("lineupModal").classList.add("hidden");
 }
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+        closeFieldLocation();
+        closeLineup();
+    }
+});
 document.getElementById("todayLabel").textContent = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
     month: "long",
