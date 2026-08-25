@@ -178,6 +178,10 @@ button:hover {
     border-left: 5px solid var(--event-team-color, #64748B);
 }
 
+.team-event.astros-event {
+    background: #F1F7FD;
+}
+
 .event-icon {
     display: inline-block;
     min-width: 28px;

@@ -716,7 +716,7 @@ function addEventCard(index) {
     const row = document.createElement("div");
     row.className = event.kind === "game-complete"
         ? "event-row game-complete-card"
-        : `event-row team-event ${isLowEmphasisEvent(event) ? "low-emphasis" : "important-event"}`;
+        : `event-row team-event ${Number(event.battingTeamId) === ASTROS_TEAM_ID ? "astros-event " : ""}${isLowEmphasisEvent(event) ? "low-emphasis" : "important-event"}`;
 
     if (event.kind !== "game-complete") {
         row.style.setProperty("--event-team-color", event.teamColor || "#64748B");
