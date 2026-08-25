@@ -11,6 +11,14 @@ const TEAM_PRIMARY_COLORS = {
     147: "#0C2340", 158: "#12284B"
 };
 
+const HIDDEN_EVENT_DESCRIPTIONS = [
+    "mound visit",
+    "batter timeout",
+    "offensive timeout",
+    "defensive timeout",
+    "on-field delay"
+];
+
 let GAME_DATE = "";
 let SAVE_KEY = "";
 
@@ -184,6 +192,9 @@ function buildEvents(data) {
             const desc = event.details?.description;
 
             if (!desc) return;
+
+            const lowerDesc = desc.toLowerCase();
+            if (HIDDEN_EVENT_DESCRIPTIONS.some(hidden => lowerDesc.includes(hidden))) return;
 
             applyMovementsThrough(event.index ?? -1);
 
