@@ -1,4 +1,5 @@
 const ASTROS_TEAM_ID = 117;
+const LOCATION_DEBUG_MODE = new URLSearchParams(window.location.search).get("locationDebug") === "1";
 
 const TEAM_PRIMARY_COLORS = {
     108: "#BA0021", 109: "#A71930", 110: "#DF4601", 111: "#BD3039",
@@ -63,6 +64,7 @@ function loadYesterday() {
 function showGamePicker() {
     document.getElementById("trackerView").classList.add("hidden");
     document.getElementById("gamePicker").classList.remove("hidden");
+    document.getElementById("locationDebugExport").classList.add("hidden");
 }
 
 function loadPickedDate() {
@@ -116,6 +118,9 @@ awayTeamId = feedData.gameData.teams.away.id;
 homeTeamId = feedData.gameData.teams.home.id;
     
     buildEvents(feedData);
+    if (LOCATION_DEBUG_MODE) {
+        document.getElementById("locationDebugExport").classList.remove("hidden");
+    }
 
     const saved = localStorage.getItem(SAVE_KEY);
 
@@ -328,7 +333,12 @@ function getHitLocation(event) {
     };
 
     const calibrated = calibrateHitLocation(location);
-    return { ...location, plotX: calibrated.x, plotY: calibrated.y };
+    return {
+        ...location,
+        plotX: calibrated.x,
+        plotY: calibrated.y,
+        playEventIndex: event.index ?? null
+    };
 }
 
 function getPlayHitLocation(play) {
@@ -821,7 +831,80 @@ function openFieldLocation(index) {
 
     document.getElementById("fieldLocationTitle").textContent = event.text.replace(/^RESULT:\s*/, "");
     document.getElementById("fieldLocationBody").innerHTML = renderFieldLocation(event.hitLocation, event.text);
+    const debugPanel = document.getElementById("fieldLocationDebug");
+    const debugCopyButton = document.getElementById("fieldLocationDebugCopy");
+    if (LOCATION_DEBUG_MODE) {
+        const location = event.hitLocation;
+        const debugData = {
+            gamePk: currentGamePk,
+            gameDate: GAME_DATE,
+            atBatIndex: event.atBat,
+            playEventIndex: location.playEventIndex,
+            batter: event.batter,
+            description: event.text.replace(/^RESULT:\s*/, ""),
+            rawX: location.x,
+            rawY: location.y,
+            plotX: Number(location.plotX.toFixed(2)),
+            plotY: Number(location.plotY.toFixed(2)),
+            trajectory: location.trajectory || null,
+            fieldLocationCode: location.location || null,
+            totalDistance: location.totalDistance,
+            launchAngle: location.launchAngle
+        };
+        debugPanel.textContent = JSON.stringify(debugData, null, 2);
+        debugPanel.classList.remove("hidden");
+        debugCopyButton.textContent = "Copy diagnostic data";
+        debugCopyButton.classList.remove("hidden");
+    } else {
+        debugPanel.textContent = "";
+        debugPanel.classList.add("hidden");
+        debugCopyButton.classList.add("hidden");
+    }
     document.getElementById("fieldLocationModal").classList.remove("hidden");
+}
+
+async function copyFieldLocationDebug() {
+    const debugPanel = document.getElementById("fieldLocationDebug");
+    const debugCopyButton = document.getElementById("fieldLocationDebugCopy");
+
+    try {
+        await navigator.clipboard.writeText(debugPanel.textContent);
+        debugCopyButton.textContent = "Copied";
+    } catch (error) {
+        debugCopyButton.textContent = "Press and hold the data to copy";
+    }
+}
+
+async function copyGameLocationDebug() {
+    const debugButton = document.getElementById("locationDebugExport");
+    const locationRecords = events
+        .filter(event => event.isResult && event.hitLocation)
+        .map(event => {
+            const location = event.hitLocation;
+            return {
+                gamePk: currentGamePk,
+                gameDate: GAME_DATE,
+                atBatIndex: event.atBat,
+                playEventIndex: location.playEventIndex,
+                batter: event.batter,
+                description: event.text.replace(/^RESULT:\s*/, ""),
+                rawX: location.x,
+                rawY: location.y,
+                plotX: Number(location.plotX.toFixed(2)),
+                plotY: Number(location.plotY.toFixed(2)),
+                trajectory: location.trajectory || null,
+                fieldLocationCode: location.location || null,
+                totalDistance: location.totalDistance,
+                launchAngle: location.launchAngle
+            };
+        });
+
+    try {
+        await navigator.clipboard.writeText(JSON.stringify(locationRecords, null, 2));
+        debugButton.textContent = `Copied ${locationRecords.length} locations`;
+    } catch (error) {
+        debugButton.textContent = "Open a Field view to copy one location";
+    }
 }
 
 function closeFieldLocation() {

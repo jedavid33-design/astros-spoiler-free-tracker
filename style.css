@@ -466,6 +466,43 @@ button:hover {
     max-width: 390px;
 }
 
+.field-location-debug {
+    background: #f4f6f8;
+    border: 1px solid #d8dee6;
+    border-radius: 10px;
+    color: #243247;
+    font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    margin: 12px 0 0;
+    max-height: 190px;
+    overflow: auto;
+    padding: 10px;
+    text-align: left;
+    white-space: pre-wrap;
+}
+
+.field-location-debug-copy {
+    background: #002D62;
+    border: 0;
+    border-radius: 10px;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    margin-top: 8px;
+    padding: 9px 12px;
+}
+
+.location-debug-export {
+    background: #334155;
+    border: 0;
+    border-radius: 10px;
+    color: white;
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    margin: 8px auto 12px;
+    padding: 9px 12px;
+}
+
 @media (max-width: 520px) {
     body { padding: 12px; }
     .navigation-controls button { font-size: 13px; padding: 10px 11px; }
