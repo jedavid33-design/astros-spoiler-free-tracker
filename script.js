@@ -1,42 +1,43 @@
 const ASTROS_TEAM_ID = 117;
 const LOCATION_DEBUG_MODE = new URLSearchParams(window.location.search).get("locationDebug") === "1";
 
-// UI-tuned pairs keep each team's identity legible in a very small pip.
-// `main` fills the pip and `ring` forms its contrasting outer border.
+// Each club has two eligible identity colors. At game load, the tracker
+// chooses one solid marker color per team from the four possible matchup
+// pairings, maximizing useful visual contrast between the opponents.
 const TEAM_COLORS = {
-    108: { main: "#C8102E", ring: "#0B1F3A" }, // Angels
-    109: { main: "#A71930", ring: "#30CED8" }, // Diamondbacks
-    110: { main: "#F47A1F", ring: "#171717" }, // Orioles
-    111: { main: "#C8102E", ring: "#0B2D5C" }, // Red Sox
-    112: { main: "#0E4DB8", ring: "#D71920" }, // Cubs
-    113: { main: "#D00027", ring: "#1C1C1C" }, // Reds
-    114: { main: "#123B63", ring: "#E31937" }, // Guardians
-    115: { main: "#5B2C83", ring: "#C4CED4" }, // Rockies
-    116: { main: "#0C2340", ring: "#FA6A1A" }, // Tigers
-    117: { main: "#F47A1F", ring: "#002D62" }, // Astros
-    118: { main: "#1469B8", ring: "#C89B3C" }, // Royals
-    119: { main: "#1261C9", ring: "#F4F7FB" }, // Dodgers
-    120: { main: "#C8102E", ring: "#142A55" }, // Nationals
-    121: { main: "#0B57A4", ring: "#F47A1F" }, // Mets
-    133: { main: "#087A4B", ring: "#F3C542" }, // Athletics
-    134: { main: "#FDB827", ring: "#171717" }, // Pirates
-    135: { main: "#4A2C20", ring: "#FFC425" }, // Padres
-    136: { main: "#0B3558", ring: "#19A7A0" }, // Mariners
-    137: { main: "#F47A1F", ring: "#171717" }, // Giants
-    138: { main: "#C8102E", ring: "#12284B" }, // Cardinals
-    139: { main: "#123B63", ring: "#79C8E8" }, // Rays
-    140: { main: "#1557B0", ring: "#C8102E" }, // Rangers
-    141: { main: "#1261C9", ring: "#D71920" }, // Blue Jays
-    142: { main: "#142A55", ring: "#D31145" }, // Twins
-    143: { main: "#D7193F", ring: "#1C4E80" }, // Phillies
-    144: { main: "#C8102E", ring: "#13274F" }, // Braves
-    145: { main: "#1C1C1C", ring: "#B8C2CC" }, // White Sox
-    146: { main: "#00A8A8", ring: "#171717" }, // Marlins
-    147: { main: "#0B2343", ring: "#F1F4F8" }, // Yankees
-    158: { main: "#17365D", ring: "#F2B431" }  // Brewers
+    108: { primary: "#C8102E", alternate: "#0B1F3A" }, // Angels
+    109: { primary: "#A71930", alternate: "#30CED8" }, // Diamondbacks
+    110: { primary: "#F47A1F", alternate: "#171717" }, // Orioles
+    111: { primary: "#C8102E", alternate: "#0B2D5C" }, // Red Sox
+    112: { primary: "#0E4DB8", alternate: "#D71920" }, // Cubs
+    113: { primary: "#D00027", alternate: "#1C1C1C" }, // Reds
+    114: { primary: "#123B63", alternate: "#E31937" }, // Guardians
+    115: { primary: "#5B2C83", alternate: "#C4CED4" }, // Rockies
+    116: { primary: "#0C2340", alternate: "#FA6A1A" }, // Tigers
+    117: { primary: "#F47A1F", alternate: "#002D62" }, // Astros
+    118: { primary: "#1469B8", alternate: "#C89B3C" }, // Royals
+    119: { primary: "#1261C9", alternate: "#F4F7FB" }, // Dodgers
+    120: { primary: "#C8102E", alternate: "#142A55" }, // Nationals
+    121: { primary: "#0B57A4", alternate: "#F47A1F" }, // Mets
+    133: { primary: "#087A4B", alternate: "#F3C542" }, // Athletics
+    134: { primary: "#FDB827", alternate: "#171717" }, // Pirates
+    135: { primary: "#4A2C20", alternate: "#FFC425" }, // Padres
+    136: { primary: "#0B3558", alternate: "#19A7A0" }, // Mariners
+    137: { primary: "#F47A1F", alternate: "#171717" }, // Giants
+    138: { primary: "#C8102E", alternate: "#12284B" }, // Cardinals
+    139: { primary: "#123B63", alternate: "#79C8E8" }, // Rays
+    140: { primary: "#1557B0", alternate: "#C8102E" }, // Rangers
+    141: { primary: "#1261C9", alternate: "#D71920" }, // Blue Jays
+    142: { primary: "#142A55", alternate: "#D31145" }, // Twins
+    143: { primary: "#D7193F", alternate: "#1C4E80" }, // Phillies
+    144: { primary: "#C8102E", alternate: "#13274F" }, // Braves
+    145: { primary: "#1C1C1C", alternate: "#B8C2CC" }, // White Sox
+    146: { primary: "#00A8A8", alternate: "#171717" }, // Marlins
+    147: { primary: "#0B2343", alternate: "#F1F4F8" }, // Yankees
+    158: { primary: "#17365D", alternate: "#F2B431" }  // Brewers
 };
 
-const DEFAULT_TEAM_COLORS = { main: "#64748B", ring: "#E2E8F0" };
+const DEFAULT_TEAM_COLORS = { primary: "#64748B", alternate: "#CBD5E1" };
 
 const HIDDEN_EVENT_DESCRIPTIONS = [
     "mound visit",
@@ -60,12 +61,14 @@ let homeTeamId = null;
 let currentGameData = null;
 let currentGamePk = null;
 let currentGameBroadcasts = [];
+let selectedGameTeamColors = new Map();
 
 function setGameDate(newDate) {
     GAME_DATE = newDate;
     SAVE_KEY = `astros-tracker-${GAME_DATE}`;
     events = [];
     revealedIndexes = [];
+    selectedGameTeamColors = new Map();
     document.getElementById("gamePicker").classList.add("hidden");
     document.getElementById("trackerView").classList.remove("hidden");
     loadGame();
@@ -143,6 +146,7 @@ awayTeamName = feedData.gameData.teams.away.teamName;
 homeTeamName = feedData.gameData.teams.home.teamName;
 awayTeamId = feedData.gameData.teams.away.id;
 homeTeamId = feedData.gameData.teams.home.id;
+selectedGameTeamColors = selectGameTeamColors(awayTeamId, homeTeamId);
     
     buildEvents(feedData);
     if (LOCATION_DEBUG_MODE) {
@@ -237,7 +241,6 @@ function buildEvents(data) {
 
             const isPitch = event.isPitch === true;
             const isTimerViolation = isPitchTimerViolation(event);
-            const teamColors = getTeamColors(battingTeamId);
 
             events.push({
                 inning: `${half} ${inning}`,
@@ -254,8 +257,7 @@ function buildEvents(data) {
                 isTimerViolation,
                 battingSide,
                 battingTeamId,
-                teamColor: teamColors.main,
-                teamRingColor: teamColors.ring,
+                teamColor: getTeamColor(battingTeamId),
                 bases: { ...occupiedBases },
                 hitLocation: getHitLocation(event),
                 playEventIndex: event.index
@@ -266,7 +268,6 @@ function buildEvents(data) {
 
         if (resultText) {
             applyMovementsThrough();
-            const teamColors = getTeamColors(battingTeamId);
             events.push({
                 inning: `${half} ${inning}`,
                 batter: batter,
@@ -282,8 +283,7 @@ function buildEvents(data) {
                 eventType: play.result?.eventType,
                 battingSide,
                 battingTeamId,
-                teamColor: teamColors.main,
-                teamRingColor: teamColors.ring,
+                teamColor: getTeamColor(battingTeamId),
                 bases: { ...occupiedBases },
                 isResult: true,
                 hitLocation: getPlayHitLocation(play)
@@ -318,7 +318,129 @@ function getTeamColors(teamId) {
 }
 
 function getTeamColor(teamId) {
-    return getTeamColors(teamId).main;
+    return selectedGameTeamColors.get(Number(teamId)) || getTeamColors(teamId).primary;
+}
+
+function hexToRgb(hexColor) {
+    const hex = hexColor.replace("#", "");
+    return {
+        red: parseInt(hex.slice(0, 2), 16) / 255,
+        green: parseInt(hex.slice(2, 4), 16) / 255,
+        blue: parseInt(hex.slice(4, 6), 16) / 255
+    };
+}
+
+function relativeLuminance(hexColor) {
+    const { red, green, blue } = hexToRgb(hexColor);
+    const linearize = channel => channel <= 0.04045
+        ? channel / 12.92
+        : ((channel + 0.055) / 1.055) ** 2.4;
+
+    return 0.2126 * linearize(red) +
+        0.7152 * linearize(green) +
+        0.0722 * linearize(blue);
+}
+
+function rgbToLab(hexColor) {
+    const { red, green, blue } = hexToRgb(hexColor);
+    const linearize = channel => channel <= 0.04045
+        ? channel / 12.92
+        : ((channel + 0.055) / 1.055) ** 2.4;
+    const r = linearize(red);
+    const g = linearize(green);
+    const b = linearize(blue);
+    const x = (r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047;
+    const y = (r * 0.2126 + g * 0.7152 + b * 0.0722);
+    const z = (r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883;
+    const pivot = value => value > 0.008856
+        ? Math.cbrt(value)
+        : 7.787 * value + 16 / 116;
+
+    return {
+        lightness: 116 * pivot(y) - 16,
+        a: 500 * (pivot(x) - pivot(y)),
+        b: 200 * (pivot(y) - pivot(z))
+    };
+}
+
+function perceptualColorDistance(firstColor, secondColor) {
+    const first = rgbToLab(firstColor);
+    const second = rgbToLab(secondColor);
+    return Math.hypot(
+        first.lightness - second.lightness,
+        first.a - second.a,
+        first.b - second.b
+    );
+}
+
+function rgbToHueAndSaturation(hexColor) {
+    const { red, green, blue } = hexToRgb(hexColor);
+    const maximum = Math.max(red, green, blue);
+    const minimum = Math.min(red, green, blue);
+    const delta = maximum - minimum;
+    let hue = 0;
+
+    if (delta !== 0) {
+        if (maximum === red) hue = 60 * (((green - blue) / delta) % 6);
+        else if (maximum === green) hue = 60 * ((blue - red) / delta + 2);
+        else hue = 60 * ((red - green) / delta + 4);
+    }
+
+    if (hue < 0) hue += 360;
+    const lightness = (maximum + minimum) / 2;
+    const saturation = delta === 0
+        ? 0
+        : delta / (1 - Math.abs(2 * lightness - 1));
+
+    return { hue, saturation };
+}
+
+function getMatchupColorScore(firstColor, secondColor) {
+    const firstLuminance = relativeLuminance(firstColor);
+    const secondLuminance = relativeLuminance(secondColor);
+    const firstHue = rgbToHueAndSaturation(firstColor);
+    const secondHue = rgbToHueAndSaturation(secondColor);
+    let score = perceptualColorDistance(firstColor, secondColor) +
+        Math.abs(firstLuminance - secondLuminance) * 45;
+
+    if (firstLuminance < 0.12 && secondLuminance < 0.12) score -= 35;
+    if (firstLuminance > 0.82) score -= 28;
+    if (secondLuminance > 0.82) score -= 28;
+
+    const hueDifference = Math.min(
+        Math.abs(firstHue.hue - secondHue.hue),
+        360 - Math.abs(firstHue.hue - secondHue.hue)
+    );
+    const bothWarm = firstHue.saturation > 0.55 && secondHue.saturation > 0.55 &&
+        (firstHue.hue <= 45 || firstHue.hue >= 340) &&
+        (secondHue.hue <= 45 || secondHue.hue >= 340);
+
+    if (bothWarm && hueDifference < 35) score -= 48;
+    return score;
+}
+
+function selectGameTeamColors(firstTeamId, secondTeamId) {
+    const firstIdentity = getTeamColors(firstTeamId);
+    const secondIdentity = getTeamColors(secondTeamId);
+    const firstCandidates = [firstIdentity.primary, firstIdentity.alternate];
+    const secondCandidates = [secondIdentity.primary, secondIdentity.alternate];
+    let bestPair = { first: firstCandidates[0], second: secondCandidates[0] };
+    let bestScore = -Infinity;
+
+    firstCandidates.forEach(firstColor => {
+        secondCandidates.forEach(secondColor => {
+            const score = getMatchupColorScore(firstColor, secondColor);
+            if (score > bestScore) {
+                bestScore = score;
+                bestPair = { first: firstColor, second: secondColor };
+            }
+        });
+    });
+
+    return new Map([
+        [Number(firstTeamId), bestPair.first],
+        [Number(secondTeamId), bestPair.second]
+    ]);
 }
 
 function getReadableTextColor(hexColor) {
@@ -957,7 +1079,6 @@ function addEventCard(index) {
 
     if (event.kind !== "game-complete") {
         row.style.setProperty("--event-team-color", event.teamColor || "#64748B");
-        row.style.setProperty("--event-team-ring", event.teamRingColor || "#E2E8F0");
     }
 
     if (event.kind === "game-complete") {

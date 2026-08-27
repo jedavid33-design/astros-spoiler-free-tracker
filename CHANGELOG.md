@@ -1,5 +1,14 @@
 # Changelog
 
+## v38
+
+- Restored the original full-height, five-pixel solid team-color rail on the left edge of every event card.
+- Removed the capsule, outline, and simultaneous two-color marker treatment.
+- Retained two identity-color candidates for every MLB club and now selects one solid color per team for each matchup.
+- Scores all four candidate pairings deterministically for perceptual contrast, with safeguards against red/orange ambiguity, dark-on-dark pairings, and nearly white rails on white cards.
+- Preserved neutral event-card backgrounds and all v36/v37 tracker behavior, diagnostics, and calibration.
+- Bumped browser assets to `script.js?v=38` and `style.css?v=13`.
+
 ## v37
 
 - Refined the two-color team pip into a slimmer, understated vertical marker.
