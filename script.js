@@ -1,23 +1,50 @@
 const ASTROS_TEAM_ID = 117;
 const LOCATION_DEBUG_MODE = new URLSearchParams(window.location.search).get("locationDebug") === "1";
 
-const TEAM_PRIMARY_COLORS = {
-    108: "#BA0021", 109: "#A71930", 110: "#DF4601", 111: "#BD3039",
-    112: "#0E3386", 113: "#C6011F", 114: "#00385D", 115: "#33006F",
-    116: "#0C2340", 117: "#EB6E1F", 118: "#004687", 119: "#005A9C",
-    120: "#AB0003", 121: "#002D72", 133: "#006341", 134: "#FDB827",
-    135: "#2F241D", 136: "#0C2C56", 137: "#FD5A1E", 138: "#C41E3A",
-    139: "#092C5C", 140: "#003278", 141: "#134A8E", 142: "#002B5C",
-    143: "#E81828", 144: "#CE1141", 145: "#27251F", 146: "#00A3E0",
-    147: "#0C2340", 158: "#12284B"
+// UI-tuned pairs keep each team's identity legible in a very small pip.
+// `main` fills the pip and `ring` forms its contrasting outer border.
+const TEAM_COLORS = {
+    108: { main: "#C8102E", ring: "#0B1F3A" }, // Angels
+    109: { main: "#A71930", ring: "#30CED8" }, // Diamondbacks
+    110: { main: "#F47A1F", ring: "#171717" }, // Orioles
+    111: { main: "#C8102E", ring: "#0B2D5C" }, // Red Sox
+    112: { main: "#0E4DB8", ring: "#D71920" }, // Cubs
+    113: { main: "#D00027", ring: "#1C1C1C" }, // Reds
+    114: { main: "#123B63", ring: "#E31937" }, // Guardians
+    115: { main: "#5B2C83", ring: "#C4CED4" }, // Rockies
+    116: { main: "#0C2340", ring: "#FA6A1A" }, // Tigers
+    117: { main: "#F47A1F", ring: "#002D62" }, // Astros
+    118: { main: "#1469B8", ring: "#C89B3C" }, // Royals
+    119: { main: "#1261C9", ring: "#F4F7FB" }, // Dodgers
+    120: { main: "#C8102E", ring: "#142A55" }, // Nationals
+    121: { main: "#0B57A4", ring: "#F47A1F" }, // Mets
+    133: { main: "#087A4B", ring: "#F3C542" }, // Athletics
+    134: { main: "#FDB827", ring: "#171717" }, // Pirates
+    135: { main: "#4A2C20", ring: "#FFC425" }, // Padres
+    136: { main: "#0B3558", ring: "#19A7A0" }, // Mariners
+    137: { main: "#F47A1F", ring: "#171717" }, // Giants
+    138: { main: "#C8102E", ring: "#12284B" }, // Cardinals
+    139: { main: "#123B63", ring: "#79C8E8" }, // Rays
+    140: { main: "#1557B0", ring: "#C8102E" }, // Rangers
+    141: { main: "#1261C9", ring: "#D71920" }, // Blue Jays
+    142: { main: "#142A55", ring: "#D31145" }, // Twins
+    143: { main: "#D7193F", ring: "#1C4E80" }, // Phillies
+    144: { main: "#C8102E", ring: "#13274F" }, // Braves
+    145: { main: "#1C1C1C", ring: "#B8C2CC" }, // White Sox
+    146: { main: "#00A8A8", ring: "#171717" }, // Marlins
+    147: { main: "#0B2343", ring: "#F1F4F8" }, // Yankees
+    158: { main: "#17365D", ring: "#F2B431" }  // Brewers
 };
+
+const DEFAULT_TEAM_COLORS = { main: "#64748B", ring: "#E2E8F0" };
 
 const HIDDEN_EVENT_DESCRIPTIONS = [
     "mound visit",
     "batter timeout",
     "offensive timeout",
     "defensive timeout",
-    "on-field delay"
+    "on-field delay",
+    "pitcher step off"
 ];
 
 let GAME_DATE = "";
@@ -173,7 +200,9 @@ function buildEvents(data) {
                 .filter(({ runner, runnerIndex }) => {
                 const movementIndex = runner.details?.playIndex;
                     return !appliedMovements.has(runnerIndex) &&
-                        (movementIndex === undefined || movementIndex <= playEventIndex);
+                        (movementIndex === undefined
+                            ? playEventIndex === Infinity
+                            : movementIndex <= playEventIndex);
                 });
 
             // Base advances on the same play are simultaneous. Clear every
@@ -198,13 +227,17 @@ function buildEvents(data) {
 
             if (!desc) return;
 
+            // Hidden administrative cards still participate in state timing.
+            // Apply any runner movement first so the next visible event gets
+            // the correct post-event bases without exposing the hidden card.
+            applyMovementsThrough(event.index ?? -1);
+
             const lowerDesc = desc.toLowerCase();
             if (HIDDEN_EVENT_DESCRIPTIONS.some(hidden => lowerDesc.includes(hidden))) return;
 
-            applyMovementsThrough(event.index ?? -1);
-
             const isPitch = event.isPitch === true;
-            const isTimerViolation = /pitch timer violation/i.test(desc);
+            const isTimerViolation = isPitchTimerViolation(event);
+            const teamColors = getTeamColors(battingTeamId);
 
             events.push({
                 inning: `${half} ${inning}`,
@@ -221,7 +254,8 @@ function buildEvents(data) {
                 isTimerViolation,
                 battingSide,
                 battingTeamId,
-                teamColor: getTeamColor(battingTeamId),
+                teamColor: teamColors.main,
+                teamRingColor: teamColors.ring,
                 bases: { ...occupiedBases },
                 hitLocation: getHitLocation(event),
                 playEventIndex: event.index
@@ -232,6 +266,7 @@ function buildEvents(data) {
 
         if (resultText) {
             applyMovementsThrough();
+            const teamColors = getTeamColors(battingTeamId);
             events.push({
                 inning: `${half} ${inning}`,
                 batter: batter,
@@ -247,7 +282,8 @@ function buildEvents(data) {
                 eventType: play.result?.eventType,
                 battingSide,
                 battingTeamId,
-                teamColor: getTeamColor(battingTeamId),
+                teamColor: teamColors.main,
+                teamRingColor: teamColors.ring,
                 bases: { ...occupiedBases },
                 isResult: true,
                 hitLocation: getPlayHitLocation(play)
@@ -260,12 +296,29 @@ function buildEvents(data) {
     }
 }
 
+function isPitchTimerViolation(event) {
+    const details = event?.details || {};
+    const searchable = [
+        details.description,
+        details.event,
+        details.eventType,
+        details.code,
+        event?.type
+    ].filter(Boolean).join(" ");
+
+    return /pitch(?:er|ing)?[ _-]*timer[ _-]*violation|automatic[ _-]*(?:ball|strike)/i.test(searchable);
+}
+
 function baseNameToKey(baseName) {
     return ({ "1B": "first", "2B": "second", "3B": "third" })[baseName] || null;
 }
 
+function getTeamColors(teamId) {
+    return TEAM_COLORS[Number(teamId)] || DEFAULT_TEAM_COLORS;
+}
+
 function getTeamColor(teamId) {
-    return TEAM_PRIMARY_COLORS[Number(teamId)] || "#64748B";
+    return getTeamColors(teamId).main;
 }
 
 function getReadableTextColor(hexColor) {
@@ -277,42 +330,216 @@ function getReadableTextColor(hexColor) {
     return luminance > 0.62 ? "#172033" : "#FFFFFF";
 }
 
-function calibrateHitLocation(location) {
-    let x = location.x;
-    let y = location.y;
-    const position = String(location.location || "");
-    const infieldAnchors = {
-        "1": { x: 125, y: 165, weight: 0.72 },
-        "2": { x: 125, y: 198, weight: 0.55 },
-        "3": { x: 157, y: 170, weight: 0.36 },
-        "4": { x: 150, y: 151, weight: 0.55 },
-        "5": { x: 93, y: 170, weight: 0.36 },
-        "6": { x: 100, y: 159, weight: 0.38 }
-    };
-    const infieldAnchor = infieldAnchors[position];
-
-    if (infieldAnchor) {
-        x += (infieldAnchor.x - x) * infieldAnchor.weight;
-        y += (infieldAnchor.y - y) * infieldAnchor.weight;
-    } else if (position === "7" || position === "9") {
-        // The MLB coordinate grid compresses many balls toward the centerline
-        // when placed on our neutral field. Expand moderately toward the line,
-        // tapering the correction so already-accurate extreme examples remain.
-        const offset = x - 125;
-        const expansion = 1 + 0.35 * (1 - Math.min(Math.abs(offset), 100) / 100);
-        x = 125 + offset * expansion;
+const FIELD_CALIBRATION = {
+    home: { x: 125, y: 205 },
+    infield: {
+        minimumY: 130,
+        automaticRadius: 70,
+        maximumRadius: 90,
+        // These are gentle spatial guides, not replacements for MLB's point.
+        // Position 4 is intentionally nearer second base than the old anchor.
+        anchors: {
+            "1": { x: 125, y: 168, weight: 0.45 },
+            "2": { x: 125, y: 198, weight: 0.18 },
+            "3": { x: 151, y: 169, weight: 0.16 },
+            "4": { x: 139, y: 153, weight: 0.18 },
+            "5": { x: 111, y: 169, weight: 0.18 },
+            "6": { x: 111, y: 157, weight: 0.18 }
+        }
+    },
+    outfield: {
+        centerDeadZone: 18,
+        fullLateralOffset: 58,
+        deepY: 72,
+        shallowY: 135,
+        leftMaximumExpansion: 1.22,
+        rightMaximumExpansion: 1.13,
+        groundBallMinimumRadius: 72,
+        groundBallMaximumRadius: 145,
+        centerGroundCompression: 0.05,
+        sideGroundCompression: 0.15,
+        fullGroundSideOffset: 50
+    },
+    boundary: {
+        inset: 3,
+        searchIterations: 26
     }
+};
 
-    if (location.trajectory === "ground_ball" && ["7", "8", "9"].includes(position)) {
-        const shallowOutfieldY = position === "8" ? 105 : 136;
-        const weight = position === "8" ? 0.30 : 0.45;
-        y += (shallowOutfieldY - y) * weight;
+function clamp01(value) {
+    return Math.max(0, Math.min(1, value));
+}
+
+function smoothstep(edge0, edge1, value) {
+    if (edge0 === edge1) return value < edge0 ? 0 : 1;
+    const normalized = clamp01((value - edge0) / (edge1 - edge0));
+    return normalized * normalized * (3 - 2 * normalized);
+}
+
+function applyInfieldCalibration(x, y, position) {
+    const settings = FIELD_CALIBRATION.infield;
+    const home = FIELD_CALIBRATION.home;
+    const radius = Math.hypot(x - home.x, y - home.y);
+    const anchor = settings.anchors[position];
+
+    if (!anchor || y < settings.minimumY || radius > settings.maximumRadius) {
+        return { x, y };
     }
 
     return {
-        x: Math.max(10, Math.min(240, x)),
-        y: Math.max(10, Math.min(225, y))
+        x: x + (anchor.x - x) * anchor.weight,
+        y: y + (anchor.y - y) * anchor.weight
     };
+}
+
+function isInfieldCalibrationRegion(location) {
+    const settings = FIELD_CALIBRATION.infield;
+    const home = FIELD_CALIBRATION.home;
+    const radius = Math.hypot(location.x - home.x, location.y - home.y);
+    const position = String(location.location || "");
+
+    if (radius <= settings.automaticRadius) return true;
+
+    return /^[1-6]$/.test(position) &&
+        location.y >= settings.minimumY &&
+        radius <= settings.maximumRadius;
+}
+
+function applyOutfieldLateralCalibration(x, y) {
+    const settings = FIELD_CALIBRATION.outfield;
+    const offset = x - FIELD_CALIBRATION.home.x;
+    const absoluteOffset = Math.abs(offset);
+    const lateralBlend = smoothstep(
+        settings.centerDeadZone,
+        settings.fullLateralOffset,
+        absoluteOffset
+    );
+    const depthBlend = smoothstep(settings.deepY, settings.shallowY, y);
+    const maximumExpansion = offset < 0
+        ? settings.leftMaximumExpansion
+        : settings.rightMaximumExpansion;
+    const expansion = 1 + (maximumExpansion - 1) * lateralBlend * depthBlend;
+
+    return FIELD_CALIBRATION.home.x + offset * expansion;
+}
+
+function applyShallowGroundBallCalibration(x, y, trajectory) {
+    if (trajectory !== "ground_ball") return { x, y };
+
+    const settings = FIELD_CALIBRATION.outfield;
+    const home = FIELD_CALIBRATION.home;
+    const dx = x - home.x;
+    const dy = y - home.y;
+    const radius = Math.hypot(dx, dy);
+
+    if (
+        y >= FIELD_CALIBRATION.infield.minimumY ||
+        radius < settings.groundBallMinimumRadius ||
+        radius > settings.groundBallMaximumRadius
+    ) {
+        return { x, y };
+    }
+
+    const sideBlend = smoothstep(
+        settings.centerDeadZone,
+        settings.fullGroundSideOffset,
+        Math.abs(dx)
+    );
+    const compression = settings.centerGroundCompression +
+        (settings.sideGroundCompression - settings.centerGroundCompression) * sideBlend;
+    const calibratedRadius = radius * (1 - compression);
+    const scale = calibratedRadius / radius;
+
+    return {
+        x: home.x + dx * scale,
+        y: home.y + dy * scale
+    };
+}
+
+function getOutfieldWallY(x) {
+    // SVG wall: M15 105 Q125 -15 235 105
+    const t = clamp01((x - 15) / 220);
+    return 105 - 240 * t + 240 * t * t;
+}
+
+function isInsidePlayableField(x, y) {
+    if (y > 205 || x < 15 || x > 235 || y < getOutfieldWallY(x)) return false;
+
+    if (y >= 105) {
+        const halfWidth = (205 - y) * 1.1;
+        return x >= 125 - halfWidth && x <= 125 + halfWidth;
+    }
+
+    return true;
+}
+
+function projectToPlayableField(x, y) {
+    if (isInsidePlayableField(x, y)) return { x, y };
+
+    const home = FIELD_CALIBRATION.home;
+    if (y >= home.y) return { ...home };
+
+    // A ray in foul territory never intersects the fair-field polygon beyond
+    // home plate. Clamp its angle to the nearest foul line before applying the
+    // curved-wall projection so foul-line examples do not collapse to home.
+    const forwardDistance = home.y - y;
+    const maximumSideDistance = forwardDistance * 1.1;
+    const originalSideDistance = x - home.x;
+    const targetX = Math.abs(originalSideDistance) > maximumSideDistance
+        ? home.x + Math.sign(originalSideDistance) * maximumSideDistance
+        : x;
+    const targetY = y;
+
+    if (isInsidePlayableField(targetX, targetY)) {
+        return { x: targetX, y: targetY };
+    }
+
+    const dx = targetX - home.x;
+    const dy = targetY - home.y;
+    const radius = Math.hypot(dx, dy);
+    if (radius === 0) return { ...home };
+
+    let insideRadius = 0;
+    let outsideRadius = radius;
+
+    for (let iteration = 0; iteration < FIELD_CALIBRATION.boundary.searchIterations; iteration++) {
+        const testRadius = (insideRadius + outsideRadius) / 2;
+        const testX = home.x + dx * (testRadius / radius);
+        const testY = home.y + dy * (testRadius / radius);
+
+        if (isInsidePlayableField(testX, testY)) {
+            insideRadius = testRadius;
+        } else {
+            outsideRadius = testRadius;
+        }
+    }
+
+    const insetRadius = Math.max(0, insideRadius - FIELD_CALIBRATION.boundary.inset);
+    return {
+        x: home.x + dx * (insetRadius / radius),
+        y: home.y + dy * (insetRadius / radius)
+    };
+}
+
+function calibrateHitLocation(location) {
+    const position = String(location.location || "");
+    let point;
+
+    if (isInfieldCalibrationRegion(location)) {
+        point = applyInfieldCalibration(location.x, location.y, position);
+    } else {
+        point = {
+            x: applyOutfieldLateralCalibration(location.x, location.y),
+            y: location.y
+        };
+        point = applyShallowGroundBallCalibration(
+            point.x,
+            point.y,
+            location.trajectory
+        );
+    }
+
+    return projectToPlayableField(point.x, point.y);
 }
 
 function getHitLocation(event) {
@@ -726,10 +953,11 @@ function addEventCard(index) {
     const row = document.createElement("div");
     row.className = event.kind === "game-complete"
         ? "event-row game-complete-card"
-        : `event-row team-event ${Number(event.battingTeamId) === ASTROS_TEAM_ID ? "astros-event " : ""}${isLowEmphasisEvent(event) ? "low-emphasis" : "important-event"}`;
+        : `event-row team-event ${isLowEmphasisEvent(event) ? "low-emphasis" : "important-event"}`;
 
     if (event.kind !== "game-complete") {
         row.style.setProperty("--event-team-color", event.teamColor || "#64748B");
+        row.style.setProperty("--event-team-ring", event.teamRingColor || "#E2E8F0");
     }
 
     if (event.kind === "game-complete") {
