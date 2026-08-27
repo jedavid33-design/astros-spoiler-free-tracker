@@ -1,5 +1,12 @@
 # Changelog
 
+## v37
+
+- Refined the two-color team pip into a slimmer, understated vertical marker.
+- Reduced the secondary-color ring from a heavy border to a thin stroke.
+- Reduced the marker width, height, shadow, and reserved card padding.
+- Preserved all 30 team color pairs and all v36 behavior and calibration.
+
 ## v36
 
 - Removed the Astros-only pale-blue event-card background.

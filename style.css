@@ -175,22 +175,22 @@ button:hover {
 
 .team-event {
     background: white;
-    padding-left: 26px;
+    padding-left: 22px;
     position: relative;
 }
 
 .team-event::before {
     background: var(--event-team-color, #64748B);
-    border: 3px solid var(--event-team-ring, #E2E8F0);
+    border: 1.5px solid var(--event-team-ring, #E2E8F0);
     border-radius: 999px;
-    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.20);
+    box-shadow: 0 0 0 0.5px rgba(15, 23, 42, 0.16);
     content: "";
-    height: 20px;
-    left: 7px;
+    height: 18px;
+    left: 8px;
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 7px;
+    width: 4px;
 }
 
 .event-icon {
