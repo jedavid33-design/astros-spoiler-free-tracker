@@ -1,140 +1,69 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f7f6fa">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="OpalDay">
-  <meta name="description" content="Your day, gently organized.">
-  <title>OpalDay</title>
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="./app-icon-180.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="./app-icon-512.png">
-  <link rel="stylesheet" href="./styles.css">
-  <link rel="stylesheet" href="./calendar.css">
-  <link rel="stylesheet" href="./v04.css">
+    <meta charset="UTF-8">
+    <title>Astros Spoiler-Free Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css?v=13">
+<link rel="apple-touch-icon" href="icon.PNG">
+<link rel="icon" type="image/png" href="icon.PNG">
 </head>
+
 <body>
-  <main class="app-shell">
-    <header class="topbar">
-      <div><p class="eyebrow" id="todayDate"></p><h1>Today</h1></div>
-      <button class="sync-pill" id="syncButton"><span class="sync-dot"></span><span id="syncText">Set up sync</span></button>
-    </header>
 
-    <section class="timeline-section view" id="todayView">
-      <div class="section-heading"><div><p class="eyebrow">Your timeline</p><h2>What’s happening</h2></div><button class="add-button" id="addButton">＋ Add</button></div>
-      <div id="items"></div>
-      <button class="today-reminders-button" id="todayRemindersButton"><span>◌</span><strong>Set reminders for today</strong><small>Notifications are off until you choose them.</small></button>
-    </section>
+    <h1>&#9918; Julie's Game Day &#9918;</h1>
 
-    <section class="view hidden" id="habitsView">
-      <div class="section-heading"><div><p class="eyebrow">Your systems</p><h2>Habits & resets</h2></div><button class="add-button view-add">＋ Add</button></div>
-      <section class="progress-card" id="progressCard">
-        <div class="progress-copy"><span class="progress-kicker">Gentle progress</span><strong id="progressTitle">Your day is wide open</strong><span id="progressNote">Add your first habit, reset, or medication.</span></div>
-        <div class="progress-ring" id="progressRing"><span id="progressNumber">0%</span></div>
-      </section>
-      <div class="filter-row" id="habitFilters">
-        <button class="selected" data-filter="all">All</button><button data-filter="habit">Habits</button><button data-filter="reset">Resets</button><button data-filter="medication">Meds</button>
-      </div>
-      <div class="system-list" id="systemList"></div>
-    </section>
-
-    <section class="view hidden" id="progressView">
-      <p class="eyebrow">Gentle progress</p><h2>Your rhythm</h2>
-      <div class="stats-grid" id="statsGrid"></div>
-      <div class="week-card"><div class="section-heading"><div><p class="eyebrow">Sunday–Saturday</p><h2>This week</h2></div><strong id="weekPercent">0%</strong></div><div class="week-bars" id="weekBars"></div></div>
-      <div class="month-card"><p class="eyebrow">Room reset</p><h2>Monthly systems</h2><div id="monthlyList"></div></div>
-    </section>
-
-    <section class="view hidden" id="calendarView">
-      <div class="view-switcher" id="calendarViewSwitcher"><button class="selected" data-cal-view="timeline">Timeline</button><button data-cal-view="day">Day</button><button data-cal-view="week">Week</button><button data-cal-view="month">Month</button></div>
-      <div class="overlay-filters" id="overlayFilters"><button data-overlay="events">Events</button><button data-overlay="habits">Habits</button><button data-overlay="medications">Medications</button><button data-overlay="resets">Resets</button><button data-overlay="completed">Completed</button></div>
-      <div class="date-nav"><button id="calPrev">‹</button><button id="calToday">Today</button><button class="range-button" id="calRange" aria-label="Choose month and year"></button><button id="calNext">›</button></div>
-      <div class="section-heading"><div><p class="eyebrow">Color-coded</p><h2>Your calendar</h2></div><button class="add-button" id="addEventButton">＋ Event</button></div>
-      <div id="calendarCanvas"></div>
-      <div class="calendar-manager"><div class="section-heading"><div><p class="eyebrow">Calendars</p><h2>Show & organize</h2></div><button class="secondary mini" id="newCalendarButton">＋ New</button></div><div id="calendarList"></div>
-      <div class="import-card sports-card"><p class="eyebrow">Sports calendars</p><h2>Your teams, automatically</h2><p class="modal-note">Choose what to follow. Schedules refresh daily and include new playoff games as they are announced.</p><div id="sportsCalendarList" class="sports-calendar-list"></div><button class="secondary full" id="refreshSports">Refresh sports schedules</button><p class="modal-note" id="sportsStatus">Built-in calendars update automatically.</p><div class="or-divider"><span>other calendars</span></div><label class="field">Import into<select id="icalCalendar"></select></label><label class="file-button">Choose .ics file<input id="icalFile" type="file" accept=".ics,text/calendar"></label></div></div>
-    </section>
-
-    <nav class="bottom-nav five">
-      <button class="selected" data-view="today"><span>◉</span>Today</button>
-      <button data-view="habits"><span>✓</span>Habits</button>
-      <button data-view="calendar"><span>▦</span>Calendar</button>
-      <button data-view="progress"><span>⌁</span>Progress</button>
-      <button id="settingsButton"><span>⚙</span>Settings</button>
-    </nav>
-  </main>
-
-  <div class="modal-backdrop hidden" id="addModal">
-    <section class="modal-sheet">
-      <div class="sheet-handle"></div><p class="eyebrow" id="itemFormEyebrow">Add anything</p><h2 id="itemFormTitle">What do you want to track?</h2>
-      <p class="modal-note">Write naturally. Add subtasks after a colon, separated by commas.</p>
-      <form id="addForm">
-        <textarea id="naturalEntry" placeholder="Organize my closet once a month: hanging clothes, shoes, top shelf"></textarea>
-        <div class="preview hidden" id="entryPreview"></div>
-        <div class="schedule-editor hidden" id="scheduleEditor">
-          <label>Type<select id="itemKind"><option value="habit">Habit</option><option value="reset">Household reset</option><option value="medication">Medication</option><option value="event">Event</option></select></label>
-          <label>Frequency<select id="itemCadence"><option value="daily">Every day</option><option value="weekly">Weekly goal</option><option value="monthly">Once a month</option><option value="interval">Every number of weeks</option><option value="once">One hard date</option></select></label>
-          <label id="targetField">Times each week<input id="itemTarget" type="number" min="1" max="14" value="1"></label>
-          <label id="intervalField" class="hidden">Number of weeks<input id="itemInterval" type="number" min="2" max="52" value="4"></label>
-          <label id="dayField">Preferred day (optional)<select id="itemDay"><option value="">Any day</option><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select></label>
-          <label id="dateField" class="hidden">Date<input id="itemDate" type="date"></label>
-          <label>Time (optional)<input id="itemTime" type="time"></label>
+    <section id="gamePicker" class="game-picker">
+        <h2>Which game do you want?</h2>
+        <button class="today-game" onclick="loadToday()">
+            <strong>Today's Game</strong>
+            <span id="todayLabel"></span>
+        </button>
+        <button onclick="loadYesterday()">Yesterday's Game</button>
+        <div class="date-picker-row">
+            <input type="date" id="gameDate">
+            <button onclick="loadPickedDate()">Choose Date</button>
         </div>
-        <div class="modal-actions"><button type="button" class="secondary" data-close>Cancel</button><button class="primary" id="addSubmit">Add item</button></div>
-      </form>
     </section>
-  </div>
 
-  <div class="modal-backdrop hidden" id="syncModal">
-    <section class="modal-sheet">
-      <div class="sheet-handle"></div><p class="eyebrow">Private device sync</p><h2 id="syncHeading">Keep every device together</h2>
-      <div id="syncBody"></div><button class="text-button" data-close>Done</button>
-    </section>
-  </div>
+    <main id="trackerView" class="hidden">
+        <button class="change-game" onclick="showGamePicker()">&larr; Choose Another Game</button>
 
-  <div class="modal-backdrop hidden" id="settingsModal">
-    <section class="modal-sheet">
-      <div class="sheet-handle"></div><p class="eyebrow">OpalDay settings</p><h2>Settings</h2>
-      <div class="settings-card">
-        <div class="settings-card-copy"><span class="settings-icon">◌</span><span><strong>Notifications</strong><small id="notificationSettingsStatus">Off until you enable them</small></span></div>
-        <p class="modal-note">Enabling notifications only gives OpalDay permission. Every reminder stays off until you choose it.</p>
-        <button class="primary full" id="enableNotificationsSettings">Enable notifications</button>
-      </div>
-      <div class="settings-card">
-        <div class="settings-card-copy"><span class="settings-icon">↻</span><span><strong>Device sync</strong><small id="settingsSyncStatus">Keep your devices together</small></span></div>
-        <button class="secondary full" id="openSyncSettings">View sync settings</button>
-      </div>
-      <div class="settings-card">
-        <div class="settings-card-copy"><span class="settings-icon">✦</span><span><strong>About</strong><small>Version and app details</small></span></div>
-        <button class="secondary full" id="openAboutSettings">About OpalDay</button>
-      </div>
-      <button class="text-button" data-close>Done</button>
-    </section>
-  </div>
+        <div class="navigation-controls">
+            <button class="previous-nav" onclick="previousEvent()">Previous Event</button>
+            <button class="forward-nav" onclick="nextAtBat()">Next At-Bat</button>
+            <button class="forward-nav" onclick="nextInning()">Next Half-Inning</button>
+            <button class="jump-live" onclick="jumpToLive()">Jump to Live</button>
+        </div>
 
-  <div class="modal-backdrop hidden" id="itemModal">
-    <section class="modal-sheet">
-      <div class="sheet-handle"></div><p class="eyebrow">System details</p><h2 id="itemModalTitle"></h2>
-      <div id="itemModalBody"></div>
-      <div class="medication-actions hidden" id="medicationActions"><button class="primary" id="medTaken">Taken</button><button class="secondary" id="medSnooze">Snooze 30m</button><button class="secondary" id="medReschedule">Reschedule</button></div>
-      <div class="modal-actions three"><button class="secondary" data-close>Close</button><button class="secondary" id="editItem">Edit</button><button class="danger" id="deleteItem">Delete</button></div>
-    </section>
-  </div>
-  <div class="modal-backdrop hidden" id="eventModal"><section class="modal-sheet"><div class="sheet-handle"></div><p class="eyebrow">Calendar event</p><h2 id="eventModalTitle">Add event</h2><p class="series-notice hidden" id="eventSeriesNotice">You’re editing the entire repeating series. Other calendar events will not be changed.</p><label class="field">Title<input id="eventTitle"></label><div class="schedule-editor"><label>Calendar<select id="eventCalendar"></select></label><label class="check-field"><input id="eventAllDay" type="checkbox"> All day</label><label>Start date<input id="eventDate" type="date"></label><label>End date<input id="eventEndDate" type="date"></label><div class="event-time-field event-time-wheel-field"><span>Start time</span><div class="time-wheel"><label>Hour<select id="eventStartHour" aria-label="Start hour"></select></label><b>:</b><label>Minute<select id="eventStartMinute" aria-label="Start minute"></select></label><label>Period<select id="eventStartPeriod" aria-label="AM or PM"><option>AM</option><option>PM</option></select></label></div></div><div class="event-time-field event-time-wheel-field"><span>End time</span><div class="time-wheel"><label>Hour<select id="eventEndTimeHour" aria-label="End hour"></select></label><b>:</b><label>Minute<select id="eventEndTimeMinute" aria-label="End minute"></select></label><label>Period<select id="eventEndTimePeriod" aria-label="AM or PM"><option>AM</option><option>PM</option></select></label></div></div><label>Repeat<select id="eventRecurrence"><option value="">Does not repeat</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option><option value="custom">Custom…</option></select></label><div class="repeat-custom hidden" id="eventCustomRepeatFields"><label>Every<input id="eventRepeatInterval" type="number" min="1" max="999" value="2"></label><label>Unit<select id="eventRepeatUnit"><option value="daily">Days</option><option value="weekly">Weeks</option><option value="monthly">Months</option><option value="yearly">Years</option></select></label></div><fieldset class="weekday-picker hidden" id="eventWeeklyDaysField"><legend>Repeat on</legend><label><input type="checkbox" name="eventWeekday" value="0"><span>Sun</span></label><label><input type="checkbox" name="eventWeekday" value="1"><span>Mon</span></label><label><input type="checkbox" name="eventWeekday" value="2"><span>Tue</span></label><label><input type="checkbox" name="eventWeekday" value="3"><span>Wed</span></label><label><input type="checkbox" name="eventWeekday" value="4"><span>Thu</span></label><label><input type="checkbox" name="eventWeekday" value="5"><span>Fri</span></label><label><input type="checkbox" name="eventWeekday" value="6"><span>Sat</span></label></fieldset><label class="hidden" id="eventRecurrenceEndField">Ends<select id="eventRecurrenceEnd"><option value="never">Never</option><option value="date">On a date</option><option value="count">After a number of occurrences</option></select></label><label id="eventRecurrenceUntilField" class="hidden">End date<input id="eventRecurrenceUntil" type="date"></label><label id="eventRecurrenceCountField" class="hidden">Number of occurrences<input id="eventRecurrenceCount" type="number" min="1" max="9999" value="10"></label></div><div class="notification-editor"><div><strong>Notification</strong><span>Off unless you enable it</span></div><label class="switch-row"><input id="eventNotify" type="checkbox"> Remind me</label><div class="notification-wheel-field"><span>Reminder time</span><div class="time-wheel" data-time-wheel="eventNotify"><label>Hour<select id="eventNotifyHour" aria-label="Reminder hour"></select></label><b>:</b><label>Minute<select id="eventNotifyMinute" aria-label="Reminder minute"></select></label><label>Period<select id="eventNotifyPeriod" aria-label="AM or PM"><option>AM</option><option>PM</option></select></label></div><small>Choose an exact time in five-minute steps.</small></div><label>Apply to<select id="eventNotifyScope"><option value="every">Every occurrence</option><option value="once">This occurrence only</option></select></label><label>For multi-day events<select id="eventNotifyDays"><option value="start">When it begins</option><option value="daily">Every day</option></select></label></div><div class="modal-actions three"><button class="danger hidden" id="deleteEvent">Delete</button><button class="secondary" data-close>Cancel</button><button class="primary" id="saveEvent">Save</button></div></section></div>
-  <div class="modal-backdrop hidden" id="calendarEditModal"><section class="modal-sheet"><div class="sheet-handle"></div><p class="eyebrow">Calendar</p><h2 id="calendarEditTitle">New calendar</h2><label class="field">Name<input id="calendarName"></label><label class="field">Color<input id="calendarColor" type="color" value="#7f3659"></label><div class="modal-actions"><button class="secondary" data-close>Cancel</button><button class="primary" id="saveCalendar">Save calendar</button></div></section></div>
-  <div class="modal-backdrop hidden" id="calendarJumpModal"><section class="modal-sheet"><div class="sheet-handle"></div><p class="eyebrow">Jump through time</p><h2>Choose a month</h2><div class="calendar-jump-wheel"><label>Month<select id="jumpMonth"></select></label><label>Year<select id="jumpYear"></select></label></div><div class="modal-actions"><button class="secondary" data-close>Cancel</button><button class="primary" id="jumpToMonth">Go</button></div></section></div>
-  <div class="modal-backdrop hidden" id="todayRemindersModal"><section class="modal-sheet"><div class="sheet-handle"></div><p class="eyebrow">Today’s notifications</p><h2>Remind me today</h2><p class="modal-note">Timed items use their scheduled time. Anything untimed defaults to noon.</p><div class="today-reminder-list" id="todayReminderList"></div><div class="modal-actions"><button class="secondary" id="clearTodayReminders">Clear today</button><button class="primary" id="enableTodayReminders">Set all reminders</button></div><button class="text-button" data-close>Cancel</button></section></div>
+        <div id="status">Loading...</div>
 
-  <div class="modal-backdrop hidden" id="aboutModal"><section class="modal-sheet compact-sheet"><div class="sheet-handle"></div><p class="eyebrow">About</p><h2>OpalDay</h2><img class="about-icon" src="./app-icon-180.png" alt="OpalDay icon"><p class="about-version">Version <strong id="aboutVersion">1.3.3</strong></p><p class="modal-note">Your routines, medications, and calendar—gently organized in one opalescent place.</p><button class="text-button" data-close>Done</button></section></div>
+        <button id="locationDebugExport" class="location-debug-export hidden" type="button" onclick="copyGameLocationDebug()">Copy all game location data</button>
 
-  <div class="toast hidden" id="toast"></div>
-  <button class="foreground-notification hidden" id="foregroundNotification" aria-live="assertive"><span class="foreground-notification-icon">✦</span><span><strong id="foregroundNotificationTitle">OpalDay reminder</strong><small id="foregroundNotificationBody"></small></span></button>
-  <script src="./config.js"></script>
-  <script src="./app.js"></script>
-  <script src="./calendar.js"></script>
-  <script src="./notifications.js"></script>
+        <button id="batterInfo" onclick="nextEvent()">
+            Batter info will appear here.
+        </button>
+
+        <div id="eventList"></div>
+    </main>
+<div id="lineupModal" class="modal hidden">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeLineup()">&times;</button>
+        <h2 id="lineupTitle"></h2>
+        <div id="lineupBody"></div>
+    </div>
+</div>
+<div id="fieldLocationModal" class="modal hidden" onclick="if (event.target === this) closeFieldLocation()">
+    <div class="modal-content field-modal-content">
+        <button class="modal-close" onclick="closeFieldLocation()" aria-label="Close ball location">&times;</button>
+        <h2>Ball Location</h2>
+        <p id="fieldLocationTitle" class="field-location-title"></p>
+        <div id="fieldLocationBody"></div>
+        <pre id="fieldLocationDebug" class="field-location-debug hidden" aria-label="Ball location diagnostic data"></pre>
+        <button id="fieldLocationDebugCopy" class="field-location-debug-copy hidden" type="button" onclick="copyFieldLocationDebug()">Copy diagnostic data</button>
+    </div>
+</div>
+    <script src="script.js?v=38"></script>
+
 </body>
 </html>
