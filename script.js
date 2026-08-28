@@ -1,5 +1,6 @@
 const ASTROS_TEAM_ID = 117;
 const LOCATION_DEBUG_MODE = new URLSearchParams(window.location.search).get("locationDebug") === "1";
+const ABS_INITIAL_CHALLENGES = 2;
 
 // Each club has two eligible identity colors. At game load, the tracker
 // chooses one solid marker color per team from the four possible matchup
@@ -62,6 +63,7 @@ let currentGameData = null;
 let currentGamePk = null;
 let currentGameBroadcasts = [];
 let selectedGameTeamColors = new Map();
+let absChallengeEnabled = false;
 
 function setGameDate(newDate) {
     GAME_DATE = newDate;
@@ -69,6 +71,7 @@ function setGameDate(newDate) {
     events = [];
     revealedIndexes = [];
     selectedGameTeamColors = new Map();
+    absChallengeEnabled = false;
     document.getElementById("gamePicker").classList.add("hidden");
     document.getElementById("trackerView").classList.remove("hidden");
     loadGame();
@@ -178,10 +181,15 @@ if (askResume && saved) {
 
 function buildEvents(data) {
     events = [];
+    absChallengeEnabled = data.gameData?.absChallenges?.hasChallenges === true;
 
     const plays = data.liveData.plays.allPlays;
     let occupiedBases = { first: null, second: null, third: null };
+    let challengeState = absChallengeEnabled
+        ? { away: ABS_INITIAL_CHALLENGES, home: ABS_INITIAL_CHALLENGES }
+        : null;
     let previousHalf = "";
+    let previousInning = 0;
 
     plays.forEach((play, playNumber) => {
         const inning = play.about.inning;
@@ -192,11 +200,21 @@ function buildEvents(data) {
         const battingSide = half === "TOP" ? "away" : "home";
         const battingTeamId = data.gameData.teams[battingSide]?.id;
         const appliedMovements = new Set();
+        let previousFeedCount = { balls: 0, strikes: 0, outs: play.playEvents?.[0]?.count?.outs ?? 0 };
 
         if (previousHalf && previousHalf !== halfKey) {
             occupiedBases = { first: null, second: null, third: null };
         }
+        if (challengeState && inning >= 10 && inning !== previousInning) {
+            if (challengeState.away === 0) challengeState.away = 1;
+            if (challengeState.home === 0) challengeState.home = 1;
+        }
         previousHalf = halfKey;
+        previousInning = inning;
+
+        const lastPitchEvent = [...(play.playEvents || [])]
+            .reverse()
+            .find(playEvent => playEvent.isPitch === true);
 
         function applyMovementsThrough(playEventIndex = Infinity) {
             const pendingMovements = (play.runners || [])
@@ -209,24 +227,17 @@ function buildEvents(data) {
                             : movementIndex <= playEventIndex);
                 });
 
-            // Base advances on the same play are simultaneous. Clear every
-            // starting base first, then place all surviving runners. This
-            // prevents an advancing runner from erasing the batter at first.
-            pendingMovements.forEach(({ runner }) => {
-                const startKey = baseNameToKey(runner.movement?.start);
-                if (startKey) occupiedBases[startKey] = null;
-            });
-
-            pendingMovements.forEach(({ runner, runnerIndex }) => {
-                const endKey = baseNameToKey(runner.movement?.end);
-                if (endKey && !runner.movement?.isOut) {
-                    occupiedBases[endKey] = runner.details?.runner?.fullName || "Runner";
-                }
-                appliedMovements.add(runnerIndex);
-            });
+            occupiedBases = applyRunnerDestinations(occupiedBases, pendingMovements);
+            pendingMovements.forEach(({ runnerIndex }) => appliedMovements.add(runnerIndex));
         }
 
         play.playEvents.forEach(event => {
+            const countBeforeEvent = { ...previousFeedCount };
+            previousFeedCount = {
+                balls: event.count?.balls ?? previousFeedCount.balls,
+                strikes: event.count?.strikes ?? previousFeedCount.strikes,
+                outs: event.count?.outs ?? previousFeedCount.outs
+            };
             const desc = event.details?.description;
 
             if (!desc) return;
@@ -241,16 +252,30 @@ function buildEvents(data) {
 
             const isPitch = event.isPitch === true;
             const isTimerViolation = isPitchTimerViolation(event);
+            const absReview = getABSReviewForEvent(play, event, lastPitchEvent);
+            const finalCall = absReview ? getABSCall(event) : null;
+            const originalCall = absReview && finalCall
+                ? (absReview.isOverturned === true ? getOppositeABSCall(finalCall) : finalCall)
+                : null;
+            const challengeActor = absReview
+                ? getChallengeActorLabel(absReview, play, data)
+                : null;
+            const originalCount = absReview?.isOverturned === true && originalCall
+                ? applyABSCallToCount(countBeforeEvent, originalCall)
+                : previousFeedCount;
+            const displayText = absReview && originalCall
+                ? `${originalCall} — ${challengeActor || "Challenge requested"}`
+                : desc;
 
             events.push({
                 inning: `${half} ${inning}`,
                 batter: batter,
                 pitcher: pitcher,
-                text: desc,
+                text: displayText,
                 atBat: playNumber,
-                balls: event.count?.balls,
-                strikes: event.count?.strikes,
-                outs: event.count?.outs,
+                balls: originalCount.balls,
+                strikes: originalCount.strikes,
+                outs: originalCount.outs,
                 pitchNumber: event.pitchNumber,
                 isPitch,
                 countsAsPitch: isPitch && !isTimerViolation,
@@ -259,20 +284,54 @@ function buildEvents(data) {
                 battingTeamId,
                 teamColor: getTeamColor(battingTeamId),
                 bases: { ...occupiedBases },
+                challengeState: cloneChallengeState(challengeState),
+                hasABSChallenge: Boolean(absReview),
                 hitLocation: getHitLocation(event),
                 playEventIndex: event.index
             });
+
+            if (
+                absReview &&
+                finalCall &&
+                absReview.inProgress !== true &&
+                typeof absReview.isOverturned === "boolean"
+            ) {
+                challengeState = applyABSChallengeOutcome(challengeState, absReview, data);
+                events.push({
+                    inning: `${half} ${inning}`,
+                    batter,
+                    pitcher,
+                    text: `CALL ${absReview.isOverturned ? "OVERTURNED" : "CONFIRMED"}: ${finalCall}`,
+                    atBat: playNumber,
+                    balls: previousFeedCount.balls,
+                    strikes: previousFeedCount.strikes,
+                    outs: previousFeedCount.outs,
+                    pitchNumber: null,
+                    isPitch: false,
+                    countsAsPitch: false,
+                    isChallengeResult: true,
+                    challengeTeamId: absReview.challengeTeamId,
+                    challengeOverturned: absReview.isOverturned,
+                    battingSide,
+                    battingTeamId,
+                    teamColor: getTeamColor(battingTeamId),
+                    bases: { ...occupiedBases },
+                    challengeState: cloneChallengeState(challengeState),
+                    playEventIndex: event.index
+                });
+            }
         });
 
         const resultText = play.result?.description;
 
         if (resultText) {
             applyMovementsThrough();
+            occupiedBases = reconcileCompletedPlayBases(occupiedBases, play.runners || []);
             events.push({
                 inning: `${half} ${inning}`,
                 batter: batter,
                 pitcher: pitcher,
-                text: `RESULT: ${resultText}`,
+                text: `RESULT: ${cleanChallengeResultDescription(resultText)}`,
                 atBat: playNumber,
                 balls: play.count?.balls,
                 strikes: play.count?.strikes,
@@ -285,6 +344,7 @@ function buildEvents(data) {
                 battingTeamId,
                 teamColor: getTeamColor(battingTeamId),
                 bases: { ...occupiedBases },
+                challengeState: cloneChallengeState(challengeState),
                 isResult: true,
                 hitLocation: getPlayHitLocation(play)
             });
@@ -307,6 +367,165 @@ function isPitchTimerViolation(event) {
     ].filter(Boolean).join(" ");
 
     return /pitch(?:er|ing)?[ _-]*timer[ _-]*violation|automatic[ _-]*(?:ball|strike)/i.test(searchable);
+}
+
+function cloneChallengeState(state) {
+    return state ? { ...state } : null;
+}
+
+function isABSChallengeReview(reviewDetails) {
+    return Boolean(
+        reviewDetails?.challengeTeamId &&
+        String(reviewDetails.reviewType || "").endsWith("J")
+    );
+}
+
+function getABSReviewForEvent(play, event, lastPitchEvent) {
+    if (isABSChallengeReview(event.reviewDetails)) return event.reviewDetails;
+
+    if (
+        event === lastPitchEvent &&
+        isABSChallengeReview(play.reviewDetails)
+    ) {
+        return play.reviewDetails;
+    }
+
+    return null;
+}
+
+function getABSCall(event) {
+    const description = String(
+        event.details?.call?.description ||
+        event.details?.description ||
+        ""
+    ).toLowerCase();
+
+    if (event.details?.isBall === true || description.includes("ball")) return "BALL";
+    if (event.details?.isStrike === true || description.includes("strike")) return "STRIKE";
+    return null;
+}
+
+function getOppositeABSCall(call) {
+    if (call === "BALL") return "STRIKE";
+    if (call === "STRIKE") return "BALL";
+    return null;
+}
+
+function applyABSCallToCount(count, call) {
+    const next = {
+        balls: count?.balls ?? 0,
+        strikes: count?.strikes ?? 0,
+        outs: count?.outs ?? 0
+    };
+
+    if (call === "BALL") next.balls++;
+    if (call === "STRIKE") next.strikes++;
+    return next;
+}
+
+function getChallengeActorLabel(reviewDetails, play, data) {
+    const player = reviewDetails?.player;
+    const playerId = Number(player?.id);
+    let role = "";
+
+    if (playerId && playerId === Number(play.matchup?.batter?.id)) {
+        role = "Batter";
+    } else if (playerId && playerId === Number(play.matchup?.pitcher?.id)) {
+        role = "Pitcher";
+    } else {
+        const position = data.gameData?.players?.[`ID${playerId}`]?.primaryPosition;
+        if (position?.abbreviation === "C" || position?.code === "2") role = "Catcher";
+    }
+
+    if (role) return `${role} challenged`;
+    if (player?.fullName) return `${player.fullName} challenged`;
+    return "Challenge requested";
+}
+
+function getTeamSideForId(teamId, data) {
+    if (Number(teamId) === Number(data.gameData?.teams?.away?.id)) return "away";
+    if (Number(teamId) === Number(data.gameData?.teams?.home?.id)) return "home";
+    return null;
+}
+
+function applyABSChallengeOutcome(state, reviewDetails, data) {
+    if (!state || reviewDetails.isOverturned !== false) return cloneChallengeState(state);
+
+    const teamSide = getTeamSideForId(reviewDetails.challengeTeamId, data);
+    if (!teamSide) return cloneChallengeState(state);
+
+    return {
+        ...state,
+        [teamSide]: Math.max(0, state[teamSide] - 1)
+    };
+}
+
+function cleanChallengeResultDescription(description) {
+    const marker = /call on the field was (?:overturned|confirmed):\s*/i;
+    const markerMatch = marker.exec(description);
+    return markerMatch
+        ? description.slice(markerMatch.index + markerMatch[0].length)
+        : description;
+}
+
+function getRunnerIdentity(runner, fallbackIndex) {
+    return runner.details?.runner?.id ??
+        runner.details?.runner?.fullName ??
+        `runner-${fallbackIndex}`;
+}
+
+function groupRunnerMovements(entries) {
+    const groups = new Map();
+
+    entries.forEach(entry => {
+        const key = getRunnerIdentity(entry.runner, entry.runnerIndex);
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(entry);
+    });
+
+    return [...groups.values()];
+}
+
+function getFinalRunnerMovement(entries) {
+    const startBases = new Set(
+        entries
+            .map(({ runner }) => runner.movement?.start)
+            .filter(Boolean)
+    );
+    const terminalEntries = entries.filter(({ runner }) => {
+        const movement = runner.movement || {};
+        return movement.isOut || !baseNameToKey(movement.end) || !startBases.has(movement.end);
+    });
+
+    return terminalEntries[terminalEntries.length - 1] || entries[entries.length - 1];
+}
+
+function applyRunnerDestinations(bases, entries) {
+    const nextBases = { ...bases };
+
+    entries.forEach(({ runner }) => {
+        const originKey = baseNameToKey(runner.movement?.originBase);
+        const startKey = baseNameToKey(runner.movement?.start);
+        if (originKey) nextBases[originKey] = null;
+        if (startKey) nextBases[startKey] = null;
+    });
+
+    groupRunnerMovements(entries).forEach(group => {
+        const finalEntry = getFinalRunnerMovement(group);
+        const movement = finalEntry.runner.movement || {};
+        const endKey = baseNameToKey(movement.end);
+
+        if (endKey && !movement.isOut) {
+            nextBases[endKey] = finalEntry.runner.details?.runner?.fullName || "Runner";
+        }
+    });
+
+    return nextBases;
+}
+
+function reconcileCompletedPlayBases(bases, runners) {
+    const entries = runners.map((runner, runnerIndex) => ({ runner, runnerIndex }));
+    return applyRunnerDestinations(bases, entries);
 }
 
 function baseNameToKey(baseName) {
@@ -874,14 +1093,6 @@ function getPitcherPitchCount(pitcherName) {
     return count;
 }
 
-function updateActiveTeamStyle(event) {
-    if (!event) return;
-    const color = event.teamColor || getTeamColor(event.battingTeamId);
-    const trackerView = document.getElementById("trackerView");
-    trackerView.style.setProperty("--active-team-color", color);
-    trackerView.style.setProperty("--active-team-text", getReadableTextColor(color));
-}
-
 function getDisplayState() {
     const currentIndex = getCurrentIndex();
     if (events.length === 0) return null;
@@ -914,6 +1125,42 @@ function renderBaseDiamond(bases = {}) {
     `;
 }
 
+function getVisibleBases(displayState) {
+    if (!displayState?.event) return { first: null, second: null, third: null };
+    if (!displayState.preview || !displayState.previous) return displayState.event.bases;
+
+    return displayState.previous.inning !== displayState.event.inning
+        ? { first: null, second: null, third: null }
+        : displayState.previous.bases;
+}
+
+function getVisibleChallengeState() {
+    if (!absChallengeEnabled) return null;
+
+    let visibleState = {
+        away: ABS_INITIAL_CHALLENGES,
+        home: ABS_INITIAL_CHALLENGES
+    };
+
+    revealedIndexes.forEach(index => {
+        if (events[index]?.challengeState) {
+            visibleState = { ...events[index].challengeState };
+        }
+    });
+
+    return visibleState;
+}
+
+function renderChallengeDots(remaining) {
+    if (!Number.isInteger(remaining)) return "";
+
+    const dots = Array.from({ length: remaining }, () =>
+        '<span class="challenge-dot" aria-hidden="true"></span>'
+    ).join("");
+
+    return `<span class="challenge-dots" aria-label="${remaining} ABS challenge${remaining === 1 ? "" : "s"} remaining" title="${remaining} ABS challenge${remaining === 1 ? "" : "s"} remaining">${dots}</span>`;
+}
+
 function getBattingQueue(event) {
     if (!event || !currentGameData) return { onDeck: "Not available", inHole: "Not available" };
 
@@ -934,8 +1181,7 @@ function updateStatus() {
     const currentIndex = getCurrentIndex();
 const score = getSpoilerFreeScore();
 const totals = getSpoilerFreeHitsErrors();
-const activeDisplay = currentIndex === -1 ? events[0] : getDisplayState()?.event;
-updateActiveTeamStyle(activeDisplay);
+const challenges = getVisibleChallengeState();
     
 
     
@@ -949,14 +1195,14 @@ document.getElementById("status").innerHTML = `
         </div>
 
 <div class="rhe-row">
-    <button class="team-link" onclick="showLineup('away')">${awayTeamName}</button>
+    <button class="team-link" onclick="showLineup('away')"><span>${awayTeamName}</span>${challenges ? renderChallengeDots(challenges.away) : ""}</button>
     <span>${score.awayScore}</span>
     <span>${totals.awayHits}</span>
     <span>${totals.awayErrors}</span>
 </div>
 
 <div class="rhe-row">
-    <button class="team-link" onclick="showLineup('home')">${homeTeamName}</button>
+    <button class="team-link" onclick="showLineup('home')"><span>${homeTeamName}</span>${challenges ? renderChallengeDots(challenges.home) : ""}</button>
     <span>${score.homeScore}</span>
     <span>${totals.homeHits}</span>
     <span>${totals.homeErrors}</span>
@@ -991,9 +1237,7 @@ const inningChanged = displayState.preview && displayState.previous?.inning !== 
 const outs = displayState.preview
     ? (inningChanged ? 0 : (displayState.previous?.outs ?? 0))
     : (event.outs ?? 0);
-const visibleBases = displayState.preview && displayState.previous
-    ? displayState.previous.bases
-    : event.bases;
+const visibleBases = getVisibleBases(displayState);
 const queue = getBattingQueue(event);
 
 const ballDots =

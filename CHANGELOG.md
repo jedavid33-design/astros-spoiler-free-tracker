@@ -1,5 +1,18 @@
 # Changelog
 
+## v39
+
+- Restored all primary navigation/action controls to the tracker's fixed dark-blue treatment.
+- Preserved the v38 matchup-aware, full-height event-card side rails without visual or selection-logic changes.
+- Reconciled completed-play bases from each runner's terminal MLB destination, eliminating ghost runners left at intermediate bases during multi-base advances.
+- Cleared the revealed base state at half-inning transitions, including the between-innings next-batter preview.
+- Added reveal-aware MLB ABS challenge dots beside each team name when the feed reports ABS support.
+- Split each ABS review into the original pitch call and a separate confirmed/overturned ruling event.
+- Ensured a reviewed pitch counts exactly once and its ruling counts zero times.
+- Reconstructed challenge use from revealed rulings rather than MLB's final game totals, preventing future challenge outcomes from leaking.
+- Added regression coverage for terminal runner destinations, stranded-runner rollover, overturned and confirmed challenges, challenge retention/loss, pitch counts, and spoiler safety.
+- Bumped browser assets to `script.js?v=39` and `style.css?v=14`.
+
 ## v38
 
 - Restored the original full-height, five-pixel solid team-color rail on the left edge of every event card.

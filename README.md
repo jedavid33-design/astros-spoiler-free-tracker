@@ -1,4 +1,4 @@
-# Astros Spoiler-Free Tracker v38
+# Astros Spoiler-Free Tracker v39
 
 A static, deployable build of Julie's Astros spoiler-free game tracker.
 

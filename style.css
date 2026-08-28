@@ -70,13 +70,12 @@ h1 {
 }
 
 .forward-nav {
-    background: var(--active-team-color, #002D62);
-    color: var(--active-team-text, white);
-    transition: background-color 160ms ease, color 160ms ease;
+    background: #002D62;
+    color: white;
 }
 
 .jump-live {
-    background: #EB6E1F;
+    background: #002D62;
 }
 
 button {
@@ -112,7 +111,7 @@ button:hover {
     padding: 16px;
     background: white;
     color: #002D62;
-    border-left: 6px solid var(--active-team-color, #EB6E1F);
+    border-left: 6px solid #002D62;
     border-radius: 12px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
     font-size: .8em;
@@ -506,6 +505,9 @@ button:hover {
     .field-location-hint { font-size: 9px; }
 }
 .team-link {
+    align-items: center;
+    display: inline-flex;
+    gap: 5px;
     padding: 0;
     margin: 0;
     background: none;
@@ -514,6 +516,21 @@ button:hover {
     text-align: left;
     font-size: 1em;
     text-decoration: underline;
+}
+
+.challenge-dots {
+    align-items: center;
+    display: inline-flex;
+    gap: 2px;
+    min-height: 6px;
+}
+
+.challenge-dot {
+    background: #64748B;
+    border-radius: 50%;
+    display: inline-block;
+    height: 5px;
+    width: 5px;
 }
 
 .modal {
