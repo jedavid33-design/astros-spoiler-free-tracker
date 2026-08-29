@@ -111,7 +111,7 @@ button:hover {
     padding: 16px;
     background: white;
     color: #002D62;
-    border-left: 6px solid #002D62;
+    border-left: 6px solid var(--active-team-color, #002D62);
     border-radius: 12px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
     font-size: .8em;
@@ -328,20 +328,8 @@ button:hover {
 }
 
 .matchup-line {
-    align-items: center;
-    display: flex;
-    flex-wrap: wrap;
     font-size: 16px;
-    gap: 7px;
-    justify-content: center;
     margin-bottom: 10px;
-}
-
-.matchup-player {
-    border-left: 6px solid var(--player-team-color, #64748B);
-    border-radius: 4px;
-    display: inline-block;
-    padding: 2px 6px;
 }
 
 .count-line {

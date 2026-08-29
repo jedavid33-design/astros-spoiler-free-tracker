@@ -1,5 +1,13 @@
 # Changelog
 
+## v42
+
+- Corrected the team-at-bat visual treatment to match the WPBL tracker: the full six-pixel left edge of the Next Event/matchup button now uses the batting team's selected matchup color.
+- Removed the mistakenly added individual accents beside the pitcher and batter names.
+- Kept the event-card side markers and their matchup-aware selection logic unchanged.
+- Preserved the ABS result typography, starting challenge-dot initialization, dark-blue navigation controls, and all tracker behavior from v41.
+- Bumped browser assets to `script.js?v=42` and `style.css?v=17`.
+
 ## v41
 
 - Matched the WPBL tracker's full-height six-pixel player-card side-accent treatment for the current pitcher and batter areas.

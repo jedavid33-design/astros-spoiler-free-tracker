@@ -1210,6 +1210,12 @@ function updateStatus() {
 const score = getSpoilerFreeScore();
 const totals = getSpoilerFreeHitsErrors();
 const challenges = getVisibleChallengeState();
+const displayState = currentIndex === -1 ? null : getDisplayState();
+const activeEvent = currentIndex === -1 ? events[0] : displayState?.event;
+document.getElementById("batterInfo").style.setProperty(
+    "--active-team-color",
+    activeEvent?.teamColor || "#002D62"
+);
     
 
     
@@ -1244,7 +1250,6 @@ document.getElementById("status").innerHTML = `
         return;
     }
 
-    const displayState = getDisplayState();
     const event = displayState?.event;
 
     if (!event) return;
@@ -1267,10 +1272,6 @@ const outs = displayState.preview
     : (event.outs ?? 0);
 const visibleBases = getVisibleBases(displayState);
 const queue = getBattingQueue(event);
-const batterTeamId = Number(event.battingTeamId);
-const pitcherTeamId = batterTeamId === Number(awayTeamId) ? homeTeamId : awayTeamId;
-const batterTeamColor = getTeamColor(batterTeamId);
-const pitcherTeamColor = getTeamColor(pitcherTeamId);
 
 const ballDots =
     "&#9679; ".repeat(balls) +
@@ -1288,9 +1289,9 @@ document.getElementById("batterInfo").innerHTML = `
     <div class="inning-line">${event.inning}</div>
 
     <div class="matchup-line">
-        <span class="matchup-player" style="--player-team-color: ${pitcherTeamColor}"><strong>${event.pitcher} (${pitcherPitchCount})</strong></span>
+        <strong>${event.pitcher} (${pitcherPitchCount})</strong>
         <span> vs </span>
-        <span class="matchup-player" style="--player-team-color: ${batterTeamColor}"><strong>${event.batter}</strong></span>
+        <strong>${event.batter}</strong>
     </div>
 
     <div class="count-line">
