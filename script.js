@@ -181,7 +181,7 @@ if (askResume && saved) {
 
 function buildEvents(data) {
     events = [];
-    absChallengeEnabled = data.gameData?.absChallenges?.hasChallenges === true;
+    absChallengeEnabled = isABSChallengeGame(data);
 
     const plays = data.liveData.plays.allPlays;
     let occupiedBases = { first: null, second: null, third: null };
@@ -371,6 +371,34 @@ function isPitchTimerViolation(event) {
 
 function cloneChallengeState(state) {
     return state ? { ...state } : null;
+}
+
+function isABSChallengeGame(data) {
+    const gameData = data?.gameData || {};
+    const absMetadata = gameData.absChallenges || {};
+
+    // Prefer an explicit feed capability flag when one is available. MLB's
+    // hasChallenges flag can remain absent until the first review, so it is
+    // not sufficient by itself for the pregame/early-game scoreboard.
+    if (
+        absMetadata.enabled === true ||
+        absMetadata.isEnabled === true ||
+        absMetadata.hasChallenges === true ||
+        gameData.gameInfo?.absChallengeEnabled === true ||
+        gameData.rules?.absChallengeEnabled === true
+    ) {
+        return true;
+    }
+
+    // The MLB ABS challenge system applies to 2026+ championship-season
+    // games. This fallback uses only game metadata, never future play events,
+    // so showing the starting allowance cannot reveal whether a challenge
+    // will occur later. Exhibition/All-Star/Spring games require an explicit
+    // capability flag above.
+    const officialDate = gameData.datetime?.officialDate || gameData.game?.officialDate || "";
+    const season = Number(gameData.game?.season || String(officialDate).slice(0, 4));
+    const gameType = gameData.game?.type || gameData.game?.gameType;
+    return season >= 2026 && ["R", "F", "D", "L", "W"].includes(gameType);
 }
 
 function isABSChallengeReview(reviewDetails) {
@@ -1239,6 +1267,10 @@ const outs = displayState.preview
     : (event.outs ?? 0);
 const visibleBases = getVisibleBases(displayState);
 const queue = getBattingQueue(event);
+const batterTeamId = Number(event.battingTeamId);
+const pitcherTeamId = batterTeamId === Number(awayTeamId) ? homeTeamId : awayTeamId;
+const batterTeamColor = getTeamColor(batterTeamId);
+const pitcherTeamColor = getTeamColor(pitcherTeamId);
 
 const ballDots =
     "&#9679; ".repeat(balls) +
@@ -1256,9 +1288,9 @@ document.getElementById("batterInfo").innerHTML = `
     <div class="inning-line">${event.inning}</div>
 
     <div class="matchup-line">
-        <strong>${event.pitcher} (${pitcherPitchCount})</strong>
+        <span class="matchup-player" style="--player-team-color: ${pitcherTeamColor}"><strong>${event.pitcher} (${pitcherPitchCount})</strong></span>
         <span> vs </span>
-        <strong>${event.batter}</strong>
+        <span class="matchup-player" style="--player-team-color: ${batterTeamColor}"><strong>${event.batter}</strong></span>
     </div>
 
     <div class="count-line">
@@ -1302,6 +1334,7 @@ function getEventIcon(event) {
 
 function isLowEmphasisEvent(event) {
     if (event.isResult) return false;
+    if (event.isChallengeResult) return true;
     if (event.isPitch) return true;
 
     const text = event.text.toLowerCase();

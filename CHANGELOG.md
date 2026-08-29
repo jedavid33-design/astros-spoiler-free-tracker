@@ -1,5 +1,23 @@
 # Changelog
 
+## v41
+
+- Matched the WPBL tracker's full-height six-pixel player-card side-accent treatment for the current pitcher and batter areas.
+- Kept separate pitcher and batter accents so each player displays the matchup-aware color of that player's own team.
+- Reused the Astros tracker's existing selected matchup colors; no second color-selection system was introduced.
+- Preserved the v40 ABS result typography and pre-challenge dot initialization.
+- Left the event-card rail styling/selection logic and dark-blue navigation controls unchanged.
+- Bumped browser assets to `script.js?v=41` and `style.css?v=16`.
+
+## v40
+
+- Changed ABS confirmed/overturned ruling cards to normal text weight while preserving the two-event challenge sequence and all count/pitch behavior.
+- Added team-colored side accents to the current pitcher and batter labels using the exact matchup colors already selected for event-card team identity.
+- Initialized both teams' starting ABS challenge dots from explicit feed capability metadata or 2026+ MLB championship-game metadata, without scanning future plays.
+- Kept non-ABS games free of challenge dots and preserved reveal-aware challenge-count updates.
+- Left the matchup-aware full-height event-card rails and dark-blue navigation/action controls unchanged.
+- Bumped browser assets to `script.js?v=40` and `style.css?v=15`.
+
 ## v39
 
 - Restored all primary navigation/action controls to the tracker's fixed dark-blue treatment.

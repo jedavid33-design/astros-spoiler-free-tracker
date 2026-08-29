@@ -328,8 +328,20 @@ button:hover {
 }
 
 .matchup-line {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
     font-size: 16px;
+    gap: 7px;
+    justify-content: center;
     margin-bottom: 10px;
+}
+
+.matchup-player {
+    border-left: 6px solid var(--player-team-color, #64748B);
+    border-radius: 4px;
+    display: inline-block;
+    padding: 2px 6px;
 }
 
 .count-line {
