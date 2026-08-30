@@ -374,33 +374,8 @@ function buildEvents(data) {
                 ? applyABSCallToCount(countBeforeEvent, originalCall)
                 : previousFeedCount;
             const displayText = absReview && originalCall
-                ? `${originalCall} — ${challengeActor || "Challenge requested"}`
+                ? formatABSChallengePitchText(originalCall, challengeActor)
                 : desc;
-
-            if (absReview && originalCall) {
-                const challengeTeamId = Number(absReview.challengeTeamId) || battingTeamId;
-                events.push({
-                    inning: `${half} ${inning}`,
-                    batter,
-                    pitcher,
-                    text: "🟡 Challenge requested",
-                    atBat: playNumber,
-                    balls: countBeforeEvent.balls,
-                    strikes: countBeforeEvent.strikes,
-                    outs: countBeforeEvent.outs,
-                    pitchNumber: null,
-                    isPitch: false,
-                    countsAsPitch: false,
-                    isChallengeRequest: true,
-                    challengeTeamId,
-                    battingSide,
-                    battingTeamId,
-                    teamColor: getTeamColor(challengeTeamId),
-                    bases: { ...occupiedBases },
-                    challengeState: cloneChallengeState(challengeState),
-                    playEventIndex: event.index
-                });
-            }
 
             events.push({
                 inning: `${half} ${inning}`,
@@ -574,6 +549,14 @@ function getOppositeABSCall(call) {
     if (call === "BALL") return "STRIKE";
     if (call === "STRIKE") return "BALL";
     return null;
+}
+
+function formatABSChallengePitchText(call, actorLabel) {
+    const callText = String(call || "Call").toLowerCase()
+        .replace(/^./, character => character.toUpperCase());
+    const actorText = String(actorLabel || "Challenge requested")
+        .replace(/\b\w/g, character => character.toUpperCase());
+    return `🟡 ${callText}- ${actorText}`;
 }
 
 function applyABSCallToCount(count, call) {
@@ -1473,7 +1456,6 @@ function getEventIcon(event) {
 function isLowEmphasisEvent(event) {
     if (event.isResult) return false;
     if (event.isChallengeResult) return true;
-    if (event.isChallengeRequest) return true;
     if (event.isPitch) return true;
 
     const text = event.text.toLowerCase();

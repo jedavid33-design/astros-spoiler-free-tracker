@@ -1,5 +1,13 @@
 # Changelog
 
+## v44
+
+- Collapsed each ABS challenge request and its original pitch call into one chronological event card.
+- Challenged pitch cards now read `🟡 Ball- Catcher Challenged` (or the available actor) and fall back to `🟡 Ball- Challenge Requested` when the feed does not identify the challenger.
+- Preserved the separate overturned/confirmed ruling card, reveal-aware challenge totals, and exactly-once pitch counting.
+- Left MLB-wide game access, event-card rails, matchup colors, dark-blue controls, navigation, bases, and Field View unchanged.
+- Bumped the script cache key to `script.js?v=44`; CSS remains v18 because no styling changed.
+
 ## v43
 
 - Expanded the date picker from an Astros-only lookup to the complete daily MLB slate.
