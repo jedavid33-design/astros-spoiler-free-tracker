@@ -1,5 +1,12 @@
 # Changelog
 
+## v45
+
+- Fixed long Field View result cards so the event bullet and `RESULT` text begin on the same line instead of leaving the bullet stranded above the text.
+- Placed the `FIELD VIEW` badge on a contained row beneath the result text.
+- Preserved result text, event order, Field View behavior, event-card rails, and all tracker logic.
+- Bumped the style cache key to `style.css?v=19`; JavaScript remains v44 because no behavior changed.
+
 ## v44
 
 - Collapsed each ABS challenge request and its original pitch call into one chronological event card.

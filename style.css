@@ -282,7 +282,27 @@ button:hover {
 }
 
 .location-available {
+    align-items: start;
     cursor: pointer;
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+}
+
+.location-available .event-icon {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.location-available .event-content {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.location-available .field-location-hint {
+    float: none;
+    grid-column: 2;
+    justify-self: end;
+    margin: 6px 0 0;
 }
 
 .location-available:hover,
