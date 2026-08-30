@@ -1,5 +1,19 @@
 # Changelog
 
+## v43
+
+- Expanded the date picker from an Astros-only lookup to the complete daily MLB slate.
+- Pinned Houston's game in a featured Astros section when present, while showing the full slate normally on off days.
+- Kept the picker spoiler-safe by rendering only matchup, scheduled time, and venue—not feed status, inning, scores, or results.
+- Changed selection/persistence to a per-`gamePk` path so multiple games on the same date maintain independent reveal progress; existing Astros date saves remain readable.
+- Generalized selected-game initialization for arbitrary away/home teams, broadcasts, lineups, matchup colors, events, Field View, and Game Complete.
+- Added a three-step reveal-safe ABS hierarchy: Challenge requested, the original reviewed pitch, then Call overturned/confirmed with the corrected/confirmed call.
+- Kept ABS ruling text at normal weight and challenge totals unchanged until the ruling event itself is revealed.
+- Preserved pre-challenge dot initialization from explicit feed metadata or eligible 2026+ MLB game metadata without scanning future events.
+- Preserved the v42 WPBL-style full left edge on the Next Event/matchup card, driven by the batting team's already-selected matchup color.
+- Left event-card rails, dark-blue controls, base-state handling, field calibration, pitch-timer logic, and spoiler-safe navigation unchanged.
+- Bumped browser assets to `script.js?v=43` and `style.css?v=18`.
+
 ## v42
 
 - Corrected the team-at-bat visual treatment to match the WPBL tracker: the full six-pixel left edge of the Next Event/matchup button now uses the batting team's selected matchup color.

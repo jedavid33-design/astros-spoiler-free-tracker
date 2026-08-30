@@ -1,5 +1,9 @@
 # Ball-location calibration notes — v36 first pass
 
+## v43 scope note
+
+MLB-wide game access reuses this existing calibration whenever the selected game's feed supplies valid batted-ball coordinates. Version 43 does not change calibration constants, transforms, raw-coordinate retention, curved-boundary handling, or `?locationDebug=1` diagnostics. Plays without usable coordinates omit Field View rather than inventing a location.
+
 ## Approach
 
 The tracker retains MLB's raw `coordX` and `coordY` values as `x` and `y`. Calibrated display values remain separate as `plotX` and `plotY`.

@@ -1,6 +1,8 @@
-# Astros Spoiler-Free Tracker v42
+# Astros Spoiler-Free Tracker v43
 
-A static, deployable build of Julie's Astros spoiler-free game tracker.
+A static, deployable build of Julie's Astros-first, spoiler-free MLB game tracker.
+
+The opening screen loads the complete MLB slate for the selected date. Houston is pinned first when it plays; every other game opens in the same reveal-controlled tracker without exposing live or final results in the picker.
 
 ## Deploy to GitHub Pages
 

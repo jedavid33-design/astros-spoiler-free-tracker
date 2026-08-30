@@ -62,19 +62,21 @@ let homeTeamId = null;
 let currentGameData = null;
 let currentGamePk = null;
 let currentGameBroadcasts = [];
+let currentSlateGames = [];
+let selectedScheduleGame = null;
 let selectedGameTeamColors = new Map();
 let absChallengeEnabled = false;
 
 function setGameDate(newDate) {
     GAME_DATE = newDate;
-    SAVE_KEY = `astros-tracker-${GAME_DATE}`;
     events = [];
     revealedIndexes = [];
+    currentGamePk = null;
+    selectedScheduleGame = null;
     selectedGameTeamColors = new Map();
     absChallengeEnabled = false;
-    document.getElementById("gamePicker").classList.add("hidden");
-    document.getElementById("trackerView").classList.remove("hidden");
-    loadGame();
+    showGamePicker();
+    loadGameSlate();
 }
 
 function getLocalDate(offsetDays = 0) {
@@ -100,6 +102,117 @@ function showGamePicker() {
     document.getElementById("locationDebugExport").classList.add("hidden");
 }
 
+function normalizeScheduleGame(game) {
+    return {
+        gamePk: Number(game.gamePk),
+        gameDate: game.gameDate || "",
+        awayTeamId: Number(game.teams?.away?.team?.id),
+        homeTeamId: Number(game.teams?.home?.team?.id),
+        awayTeamName: game.teams?.away?.team?.teamName || game.teams?.away?.team?.name || "Away team",
+        homeTeamName: game.teams?.home?.team?.teamName || game.teams?.home?.team?.name || "Home team",
+        venueName: game.venue?.name || "",
+        broadcasts: Array.isArray(game.broadcasts) ? game.broadcasts : []
+    };
+}
+
+function sortSlateGames(games) {
+    return [...games].sort((first, second) => {
+        const firstAstros = first.awayTeamId === ASTROS_TEAM_ID || first.homeTeamId === ASTROS_TEAM_ID;
+        const secondAstros = second.awayTeamId === ASTROS_TEAM_ID || second.homeTeamId === ASTROS_TEAM_ID;
+        if (firstAstros !== secondAstros) return firstAstros ? -1 : 1;
+        return new Date(first.gameDate).getTime() - new Date(second.gameDate).getTime();
+    });
+}
+
+function formatSlateDate(dateValue) {
+    const [year, month, day] = String(dateValue).split("-").map(Number);
+    return new Intl.DateTimeFormat("en-US", {
+        weekday: "long", month: "long", day: "numeric"
+    }).format(new Date(year, month - 1, day));
+}
+
+function formatSlateTime(dateValue) {
+    if (!dateValue) return "Time not available";
+    return new Intl.DateTimeFormat("en-US", {
+        hour: "numeric", minute: "2-digit"
+    }).format(new Date(dateValue));
+}
+
+function renderSlateGame(game, featured = false) {
+    const venue = game.venueName ? `<span class="slate-venue">${game.venueName}</span>` : "";
+    return `
+        <button class="slate-game${featured ? " featured-game" : ""}" type="button" data-game-pk="${game.gamePk}">
+            <span class="slate-matchup">${featured ? "★ " : ""}${game.awayTeamName} at ${game.homeTeamName}</span>
+            <span class="slate-time">${formatSlateTime(game.gameDate)}</span>
+            ${venue}
+        </button>
+    `;
+}
+
+function renderGameSlate(games) {
+    const slate = document.getElementById("gameSlate");
+    const sorted = sortSlateGames(games);
+    const astrosGames = sorted.filter(game => game.awayTeamId === ASTROS_TEAM_ID || game.homeTeamId === ASTROS_TEAM_ID);
+    const otherGames = sorted.filter(game => !astrosGames.includes(game));
+
+    if (!sorted.length) {
+        slate.innerHTML = `<p class="slate-message">No MLB games are scheduled for ${formatSlateDate(GAME_DATE)}.</p>`;
+        return;
+    }
+
+    slate.innerHTML = `
+        <h3 class="slate-date">${formatSlateDate(GAME_DATE)}</h3>
+        ${astrosGames.length ? `
+            <section class="slate-section">
+                <h4>ASTROS GAME</h4>
+                ${astrosGames.map(game => renderSlateGame(game, true)).join("")}
+            </section>
+        ` : ""}
+        ${otherGames.length ? `
+            <section class="slate-section">
+                <h4>${astrosGames.length ? "OTHER MLB GAMES" : "MLB GAMES"}</h4>
+                ${otherGames.map(game => renderSlateGame(game)).join("")}
+            </section>
+        ` : ""}
+    `;
+
+    slate.querySelectorAll?.("[data-game-pk]").forEach(button => {
+        button.addEventListener("click", () => selectGame(Number(button.dataset.gamePk)));
+    });
+}
+
+async function loadGameSlate() {
+    const slate = document.getElementById("gameSlate");
+    slate.innerHTML = '<p class="slate-message">Loading MLB games...</p>';
+    document.getElementById("gameDate").value = GAME_DATE;
+
+    try {
+        const scheduleUrl = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${GAME_DATE}&hydrate=broadcasts(all),venue`;
+        const response = await fetch(scheduleUrl);
+        if (!response.ok) throw new Error(`Schedule request failed (${response.status})`);
+        const data = await response.json();
+        currentSlateGames = (data.dates?.[0]?.games || []).map(normalizeScheduleGame);
+        renderGameSlate(currentSlateGames);
+    } catch (error) {
+        console.error(error);
+        slate.innerHTML = '<p class="slate-message">The MLB schedule could not be loaded. Please try again.</p>';
+    }
+}
+
+function selectGame(gamePk) {
+    const game = currentSlateGames.find(item => item.gamePk === Number(gamePk));
+    if (!game) return;
+
+    selectedScheduleGame = game;
+    currentGamePk = game.gamePk;
+    SAVE_KEY = `astros-tracker-game-${currentGamePk}`;
+    events = [];
+    revealedIndexes = [];
+    document.getElementById("gamePicker").classList.add("hidden");
+    document.getElementById("trackerView").classList.remove("hidden");
+    loadGame(true);
+}
+
 function loadPickedDate() {
     const pickedDate = document.getElementById("gameDate").value;
 
@@ -113,33 +226,28 @@ function loadPickedDate() {
 
 async function loadGame(askResume = true) {
     if (askResume) {
-    document.getElementById("status").innerHTML = "Loading Astros game...";
+    document.getElementById("status").innerHTML = "Loading game...";
     document.getElementById("batterInfo").innerHTML = "";
     document.getElementById("eventList").innerHTML = "";
 }
 
-    const scheduleUrl =
-        `https://statsapi.mlb.com/api/v1/schedule?sportId=1&teamId=${ASTROS_TEAM_ID}&date=${GAME_DATE}&hydrate=broadcasts(all)`;
-
-    const scheduleResponse = await fetch(scheduleUrl);
-    const scheduleData = await scheduleResponse.json();
-
-    const games = scheduleData.dates?.[0]?.games || [];
-
-    if (games.length === 0) {
-        document.getElementById("status").innerHTML =
-            "No Astros game found for that date.";
-        return;
-    }
-
-    const scheduledGame = games[0];
-    const gamePk = scheduledGame.gamePk;
+    const scheduledGame = selectedScheduleGame;
+    const gamePk = currentGamePk;
+    if (!scheduledGame || !gamePk) return;
 
     const feedUrl =
         `https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`;
 
-    const feedResponse = await fetch(feedUrl);
-    const feedData = await feedResponse.json();
+    let feedData;
+    try {
+        const feedResponse = await fetch(feedUrl);
+        if (!feedResponse.ok) throw new Error(`Game feed request failed (${feedResponse.status})`);
+        feedData = await feedResponse.json();
+    } catch (error) {
+        console.error(error);
+        if (askResume) document.getElementById("status").innerHTML = "This game could not be loaded. Please try again.";
+        return;
+    }
 
 currentGameData = feedData;
 currentGamePk = gamePk;
@@ -156,7 +264,9 @@ selectedGameTeamColors = selectGameTeamColors(awayTeamId, homeTeamId);
         document.getElementById("locationDebugExport").classList.remove("hidden");
     }
 
-    const saved = localStorage.getItem(SAVE_KEY);
+    const includesAstros = awayTeamId === ASTROS_TEAM_ID || homeTeamId === ASTROS_TEAM_ID;
+    const legacySaveKey = includesAstros ? `astros-tracker-${GAME_DATE}` : null;
+    const saved = localStorage.getItem(SAVE_KEY) || (legacySaveKey ? localStorage.getItem(legacySaveKey) : null);
 
 if (askResume && saved) {
     const resume = confirm("Resume saved progress for this game?");
@@ -267,6 +377,31 @@ function buildEvents(data) {
                 ? `${originalCall} — ${challengeActor || "Challenge requested"}`
                 : desc;
 
+            if (absReview && originalCall) {
+                const challengeTeamId = Number(absReview.challengeTeamId) || battingTeamId;
+                events.push({
+                    inning: `${half} ${inning}`,
+                    batter,
+                    pitcher,
+                    text: "🟡 Challenge requested",
+                    atBat: playNumber,
+                    balls: countBeforeEvent.balls,
+                    strikes: countBeforeEvent.strikes,
+                    outs: countBeforeEvent.outs,
+                    pitchNumber: null,
+                    isPitch: false,
+                    countsAsPitch: false,
+                    isChallengeRequest: true,
+                    challengeTeamId,
+                    battingSide,
+                    battingTeamId,
+                    teamColor: getTeamColor(challengeTeamId),
+                    bases: { ...occupiedBases },
+                    challengeState: cloneChallengeState(challengeState),
+                    playEventIndex: event.index
+                });
+            }
+
             events.push({
                 inning: `${half} ${inning}`,
                 batter: batter,
@@ -297,11 +432,13 @@ function buildEvents(data) {
                 typeof absReview.isOverturned === "boolean"
             ) {
                 challengeState = applyABSChallengeOutcome(challengeState, absReview, data);
+                const challengeTeamId = Number(absReview.challengeTeamId) || battingTeamId;
                 events.push({
                     inning: `${half} ${inning}`,
                     batter,
                     pitcher,
-                    text: `CALL ${absReview.isOverturned ? "OVERTURNED" : "CONFIRMED"}: ${finalCall}`,
+                    text: finalCall,
+                    challengeLabel: absReview.isOverturned ? "🔴 Call overturned" : "🟢 Call confirmed",
                     atBat: playNumber,
                     balls: previousFeedCount.balls,
                     strikes: previousFeedCount.strikes,
@@ -310,11 +447,11 @@ function buildEvents(data) {
                     isPitch: false,
                     countsAsPitch: false,
                     isChallengeResult: true,
-                    challengeTeamId: absReview.challengeTeamId,
+                    challengeTeamId,
                     challengeOverturned: absReview.isOverturned,
                     battingSide,
                     battingTeamId,
-                    teamColor: getTeamColor(battingTeamId),
+                    teamColor: getTeamColor(challengeTeamId),
                     bases: { ...occupiedBases },
                     challengeState: cloneChallengeState(challengeState),
                     playEventIndex: event.index
@@ -1214,7 +1351,7 @@ const displayState = currentIndex === -1 ? null : getDisplayState();
 const activeEvent = currentIndex === -1 ? events[0] : displayState?.event;
 document.getElementById("batterInfo").style.setProperty(
     "--active-team-color",
-    activeEvent?.teamColor || "#002D62"
+    activeEvent?.battingTeamId ? getTeamColor(activeEvent.battingTeamId) : "#002D62"
 );
     
 
@@ -1336,6 +1473,7 @@ function getEventIcon(event) {
 function isLowEmphasisEvent(event) {
     if (event.isResult) return false;
     if (event.isChallengeResult) return true;
+    if (event.isChallengeRequest) return true;
     if (event.isPitch) return true;
 
     const text = event.text.toLowerCase();
@@ -1408,7 +1546,10 @@ function addEventCard(index) {
 
     row.innerHTML = `
         <span class="event-icon">${icon}</span>
-        <span class="event-text">${event.text}</span>
+        <span class="event-content">
+            ${event.challengeLabel ? `<span class="challenge-label">${event.challengeLabel}</span>` : ""}
+            <span class="event-text">${event.text}</span>
+        </span>
         ${hasFieldLocation ? `<span class="field-location-hint">Field view</span>` : ""}
     `;
 
@@ -1771,6 +1912,7 @@ document.getElementById("todayLabel").textContent = new Intl.DateTimeFormat("en-
     day: "numeric"
 }).format(new Date());
 document.getElementById("gameDate").value = getLocalDate();
+document.addEventListener("DOMContentLoaded", () => loadToday());
 
 setInterval(() => {
     if (GAME_DATE && !document.getElementById("trackerView").classList.contains("hidden")) {
