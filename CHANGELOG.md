@@ -1,5 +1,13 @@
 # Changelog
 
+## v46
+
+- Applied a robust two-column grid to every normal event card: a fixed 28-pixel icon column and a flexible `minmax(0, 1fr)` text column.
+- Ensured every wrapped line remains aligned beneath the first text line for results, numbered pitches, changes, substitutions, challenges, and other icon-led events.
+- Kept Field View badges inside the text column on a separate contained row.
+- Preserved card dimensions, typography, emphasis, icons, team-color rails, event chronology, and all tracker behavior.
+- Bumped the style cache key to `style.css?v=20`; JavaScript remains v44 because no behavior changed.
+
 ## v45
 
 - Fixed long Field View result cards so the event bullet and `RESULT` text begin on the same line instead of leaving the bullet stranded above the text.
