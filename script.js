@@ -1529,8 +1529,7 @@ function addEventCard(index) {
     row.innerHTML = `
         <span class="event-icon">${icon}</span>
         <span class="event-content">
-            ${event.challengeLabel ? `<span class="challenge-label">${event.challengeLabel}</span>` : ""}
-            <span class="event-text">${event.text}</span>
+            <span class="event-text">${event.challengeLabel ? `<span class="challenge-label">${event.challengeLabel}:</span> ` : ""}${event.text}</span>
         </span>
         ${hasFieldLocation ? `<span class="field-location-hint">Field view</span>` : ""}
     `;

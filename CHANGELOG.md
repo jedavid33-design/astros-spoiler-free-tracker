@@ -1,5 +1,12 @@
 # Changelog
 
+## v47
+
+- Placed each ABS challenge ruling label and its confirmed/corrected call in one inline text flow, such as `🔴 Call overturned: STRIKE` or `🟢 Call confirmed: BALL`.
+- Preserved normal challenge-result font weight, the separate ruling event, reveal timing, challenge counts, and pitch counts.
+- Left all other event-card layout and tracker behavior unchanged.
+- Bumped browser assets to `script.js?v=47` and `style.css?v=21`.
+
 ## v46
 
 - Applied a robust two-column grid to every normal event card: a fixed 28-pixel icon column and a flexible `minmax(0, 1fr)` text column.
