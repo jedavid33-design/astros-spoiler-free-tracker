@@ -426,7 +426,7 @@ function buildEvents(data) {
                     challengeOverturned: absReview.isOverturned,
                     battingSide,
                     battingTeamId,
-                    teamColor: getTeamColor(challengeTeamId),
+                    teamColor: getTeamColor(battingTeamId),
                     bases: { ...occupiedBases },
                     challengeState: cloneChallengeState(challengeState),
                     playEventIndex: event.index
@@ -1258,13 +1258,13 @@ function getDisplayState() {
     return { event: current, preview: false, previous: null };
 }
 
-function renderBaseDiamond(bases = {}) {
+function renderBaseDiamond(bases = {}, teamColor = "#002D62") {
     const occupied = key => bases[key] ? " occupied" : "";
     const label = [bases.first && `First: ${bases.first}`, bases.second && `Second: ${bases.second}`, bases.third && `Third: ${bases.third}`]
         .filter(Boolean).join(", ") || "Bases empty";
 
     return `
-        <div class="base-diamond" aria-label="${label}" title="${label}">
+        <div class="base-diamond" style="--base-team-color: ${teamColor}" aria-label="${label}" title="${label}">
             <span class="base second${occupied("second")}"></span>
             <span class="base third${occupied("third")}"></span>
             <span class="base first${occupied("first")}"></span>
@@ -1421,7 +1421,7 @@ document.getElementById("batterInfo").innerHTML = `
     </div>
 
     <div class="between-play-info">
-        ${renderBaseDiamond(visibleBases)}
+        ${renderBaseDiamond(visibleBases, activeEvent?.battingTeamId ? getTeamColor(activeEvent.battingTeamId) : "#002D62")}
         <div class="batting-queue">
             <span><strong>On deck:</strong> ${queue.onDeck}</span>
             <span><strong>In the hole:</strong> ${queue.inHole}</span>

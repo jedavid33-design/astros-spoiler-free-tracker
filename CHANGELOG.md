@@ -1,5 +1,14 @@
 # Changelog
 
+## v48
+
+- Unified live-game typography to black on the Next Event/matchup card, R/H/E scoreboard, and revealed event cards for stronger readability.
+- Changed the Next Event/matchup card to a neutral white background with a full batting-team-color border.
+- Made base outlines and occupied-base fills automatically use the current batting team color; home plate follows the same accent.
+- Kept ABS challenge ruling cards in the batting team color flow so they visually remain part of the same at-bat.
+- Restyled Previous Event, Next At-Bat, Next Half-Inning, and Jump to Live controls to echo the neutral game-selection button treatment.
+- Bumped browser assets to `script.js?v=48` and `style.css?v=22`.
+
 ## v47
 
 - Placed each ABS challenge ruling label and its confirmed/corrected call in one inline text flow, such as `🔴 Call overturned: STRIKE` or `🟢 Call confirmed: BALL`.
