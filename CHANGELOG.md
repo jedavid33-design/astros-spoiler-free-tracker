@@ -1,3 +1,11 @@
+## v49
+
+- Changed the game-selection controls to a soft medium gray with white text.
+- Changed live-game navigation controls to the same gray treatment for a consistent control palette.
+- Changed game-list matchup, time, and venue text to black while preserving the featured Astros-game accent treatment.
+- Preserved the neutral at-bat card, black card/R-H-E text, matchup-aware team-color border/bases, and unified challenge styling from v48.
+- Bumped the stylesheet cache key to `style.css?v=23`.
+
 # Changelog
 
 ## v48

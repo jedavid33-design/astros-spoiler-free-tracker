@@ -731,3 +731,49 @@ button:hover {
 .navigation-controls button:focus-visible {
     background: #eef2f6;
 }
+
+
+/* v49 neutral control palette + black game-list text */
+button,
+.forward-nav,
+.jump-live,
+.navigation-controls button,
+.quick-date-controls button,
+.date-picker-row button {
+    background: #6b7280;
+    border: 1px solid #6b7280;
+    color: #fff;
+}
+
+button:hover,
+button:focus-visible,
+.navigation-controls button:hover,
+.navigation-controls button:focus-visible,
+.quick-date-controls button:hover,
+.quick-date-controls button:focus-visible,
+.date-picker-row button:hover,
+.date-picker-row button:focus-visible {
+    background: #5f6670;
+    border-color: #5f6670;
+    color: #fff;
+}
+
+.change-game {
+    background: transparent;
+    border-color: transparent;
+    color: #002D62;
+}
+
+.change-game:hover,
+.change-game:focus-visible {
+    background: transparent;
+    border-color: transparent;
+    color: #002D62;
+}
+
+.slate-game,
+.slate-game .slate-matchup,
+.slate-game .slate-time,
+.slate-game .slate-venue {
+    color: #000;
+}
