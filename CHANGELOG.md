@@ -1,3 +1,11 @@
+## v50
+
+- Lightened the global button palette to a soft neutral gray.
+- Switched all button labels/icons to black for stronger readability.
+- Applied the same control treatment to game-selection, live navigation, date controls, and Choose Another Game.
+- Added a slightly darker gray hover/focus state while preserving black text.
+- Bumped the stylesheet asset to `style.css?v=24`.
+
 ## v49
 
 - Changed the game-selection controls to a soft medium gray with white text.
@@ -129,3 +137,6 @@
 - Added gentle infield guidance, depth-aware lateral outfield spread, radial shallow-ground-ball correction, and curved playable-field boundary projection.
 - Preserved raw coordinates and the hidden v35 location diagnostic mode.
 - Bumped browser assets to `script.js?v=36` and `style.css?v=11`.
+### v50 hotfix
+- Removed the unintended button-style outline/pill border around team names in the R/H/E scoreboard while preserving lineup-link behavior.
+

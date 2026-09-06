@@ -777,3 +777,43 @@ button:focus-visible,
 .slate-game .slate-venue {
     color: #000;
 }
+
+/* v50 lighter global controls */
+button,
+.forward-nav,
+.jump-live,
+.navigation-controls button,
+.quick-date-controls button,
+.date-picker-row button,
+.change-game {
+    background: #e5e7eb;
+    border: 1px solid #d1d5db;
+    color: #000;
+}
+
+button:hover,
+button:focus-visible,
+.navigation-controls button:hover,
+.navigation-controls button:focus-visible,
+.quick-date-controls button:hover,
+.quick-date-controls button:focus-visible,
+.date-picker-row button:hover,
+.date-picker-row button:focus-visible,
+.change-game:hover,
+.change-game:focus-visible {
+    background: #d1d5db;
+    border-color: #c4c9d0;
+    color: #000;
+}
+
+/* v50 hotfix: scoreboard team names are links, not pill buttons */
+.scoreboard .team-link,
+.scoreboard .team-link:hover,
+.scoreboard .team-link:focus-visible {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    color: #000;
+    padding: 0;
+}
