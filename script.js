@@ -49,6 +49,13 @@ const HIDDEN_EVENT_DESCRIPTIONS = [
     "pitcher step off"
 ];
 
+function simplifyInPlayDescription(description) {
+    const text = String(description || "").trim();
+    return /^in play,\s*(?:out\(s\)|no out|run\(s\))$/i.test(text)
+        ? "In play"
+        : description;
+}
+
 let GAME_DATE = "";
 let SAVE_KEY = "";
 
@@ -375,7 +382,7 @@ function buildEvents(data) {
                 : previousFeedCount;
             const displayText = absReview && originalCall
                 ? formatABSChallengePitchText(originalCall, challengeActor)
-                : desc;
+                : simplifyInPlayDescription(desc);
 
             events.push({
                 inning: `${half} ${inning}`,

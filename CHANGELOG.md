@@ -1,3 +1,9 @@
+## v51
+
+- Simplified all standard MLB ball-in-play pitch labels so `In play, out(s)`, `In play, no out`, and `In play, run(s)` display simply as `In play`.
+- Left the result event unchanged, since it already communicates the actual outcome of the ball in play.
+- Bumped the script cache key to `script.js?v=49`.
+
 ## v50
 
 - Lightened the global button palette to a soft neutral gray.
