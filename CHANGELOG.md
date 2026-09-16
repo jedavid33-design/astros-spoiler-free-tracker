@@ -1,3 +1,10 @@
+## v52
+
+- Added fixed display-color overrides for the two clubs whose normal colors can disappear against the tracker UI: Yankees always render black (`#000000`) and White Sox render visible silver/gray (`#B8C2CC`).
+- Kept every other club on the existing matchup color-selection system.
+- Preserved the existing base treatment, including the occupied-base edge and team-color empty-base outlines.
+- Bumped the script cache key to `script.js?v=52`.
+
 ## v51
 
 - Simplified all standard MLB ball-in-play pitch labels so `In play, out(s)`, `In play, no out`, and `In play, run(s)` display simply as `In play`.

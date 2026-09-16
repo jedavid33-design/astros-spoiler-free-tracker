@@ -40,6 +40,13 @@ const TEAM_COLORS = {
 
 const DEFAULT_TEAM_COLORS = { primary: "#64748B", alternate: "#CBD5E1" };
 
+// Display-only overrides for clubs whose normal identity colors disappear against
+// the tracker's white UI. These are intentionally fixed, not matchup-dependent.
+const TEAM_DISPLAY_COLOR_OVERRIDES = {
+    145: "#B8C2CC", // White Sox: visible silver/gray
+    147: "#000000"  // Yankees: always black
+};
+
 const HIDDEN_EVENT_DESCRIPTIONS = [
     "mound visit",
     "batter timeout",
@@ -796,8 +803,10 @@ function getMatchupColorScore(firstColor, secondColor) {
 function selectGameTeamColors(firstTeamId, secondTeamId) {
     const firstIdentity = getTeamColors(firstTeamId);
     const secondIdentity = getTeamColors(secondTeamId);
-    const firstCandidates = [firstIdentity.primary, firstIdentity.alternate];
-    const secondCandidates = [secondIdentity.primary, secondIdentity.alternate];
+    const firstOverride = TEAM_DISPLAY_COLOR_OVERRIDES[Number(firstTeamId)];
+    const secondOverride = TEAM_DISPLAY_COLOR_OVERRIDES[Number(secondTeamId)];
+    const firstCandidates = firstOverride ? [firstOverride] : [firstIdentity.primary, firstIdentity.alternate];
+    const secondCandidates = secondOverride ? [secondOverride] : [secondIdentity.primary, secondIdentity.alternate];
     let bestPair = { first: firstCandidates[0], second: secondCandidates[0] };
     let bestScore = -Infinity;
 
