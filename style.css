@@ -512,8 +512,18 @@ button:hover {
 }
 
 .base.occupied {
-    background: var(--base-team-color, #002D62);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--base-team-color, #002D62) 18%, transparent);
+    /* Restrained enamel/metallic fill built from the existing display color.
+       The border remains the existing solid team color. */
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--base-team-color, #002D62) 78%, #000) 0%,
+        var(--base-team-color, #002D62) 28%,
+        color-mix(in srgb, var(--base-team-color, #002D62) 72%, #fff) 48%,
+        var(--base-team-color, #002D62) 68%,
+        color-mix(in srgb, var(--base-team-color, #002D62) 78%, #000) 100%
+    );
+    /* Preserve the existing light-gray edge around occupied bases. */
+    box-shadow: 0 0 0 2px #d1d5db;
 }
 
 .base.second { left: 28px; top: 2px; }
@@ -521,7 +531,15 @@ button:hover {
 .base.first { right: 8px; top: 23px; }
 
 .home-plate {
-    background: var(--base-team-color, #002D62);
+    /* Same restrained enamel treatment as occupied bases; linework stays solid. */
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--base-team-color, #002D62) 78%, #000) 0%,
+        var(--base-team-color, #002D62) 28%,
+        color-mix(in srgb, var(--base-team-color, #002D62) 72%, #fff) 48%,
+        var(--base-team-color, #002D62) 68%,
+        color-mix(in srgb, var(--base-team-color, #002D62) 78%, #000) 100%
+    );
     clip-path: polygon(0 0, 100% 0, 82% 72%, 50% 100%, 18% 72%);
     height: 12px;
     left: 29px;
