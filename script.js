@@ -1120,6 +1120,15 @@ function buildGameCompleteEvent(data) {
             .filter(Boolean)
     )];
     const decisions = data.liveData.decisions || {};
+    const awayBoxscoreTeam = data.liveData.boxscore?.teams?.away || {};
+    const homeBoxscoreTeam = data.liveData.boxscore?.teams?.home || {};
+    const awayTeamStats = awayBoxscoreTeam.teamStats || {};
+    const homeTeamStats = homeBoxscoreTeam.teamStats || {};
+    const awayRuns = Number(awayTeamStats.batting?.runs ?? data.liveData.linescore?.teams?.away?.runs ?? 0);
+    const homeRuns = Number(homeTeamStats.batting?.runs ?? data.liveData.linescore?.teams?.home?.runs ?? 0);
+    const winnerTeamId = awayRuns > homeRuns
+        ? Number(data.gameData.teams?.away?.id)
+        : Number(data.gameData.teams?.home?.id);
     const pitchCounts = ["away", "home"].map(teamSide => {
         const boxscoreTeam = data.liveData.boxscore?.teams?.[teamSide] || {};
         const players = boxscoreTeam.players || {};
@@ -1143,6 +1152,20 @@ function buildGameCompleteEvent(data) {
         inning: "FINAL",
         atBat: Number.MAX_SAFE_INTEGER,
         text: "Game Complete",
+        winnerTeamId,
+        winnerColor: getTeamColor(winnerTeamId),
+        officialTotals: {
+            away: {
+                runs: awayRuns,
+                hits: Number(awayTeamStats.batting?.hits ?? data.liveData.linescore?.teams?.away?.hits ?? 0),
+                errors: Number(awayTeamStats.fielding?.errors ?? data.liveData.linescore?.teams?.away?.errors ?? 0)
+            },
+            home: {
+                runs: homeRuns,
+                hits: Number(homeTeamStats.batting?.hits ?? data.liveData.linescore?.teams?.home?.hits ?? 0),
+                errors: Number(homeTeamStats.fielding?.errors ?? data.liveData.linescore?.teams?.home?.errors ?? 0)
+            }
+        },
         details: {
             startTime: formatGameTime(startDate, timeZone),
             endTime: formatGameTime(endDate, timeZone),
@@ -1193,6 +1216,17 @@ function getSpoilerFreeScore() {
         }
     });
 
+    const revealedGameComplete = revealedIndexes
+        .map(index => events[index])
+        .find(event => event?.kind === "game-complete");
+
+    if (revealedGameComplete?.officialTotals) {
+        return {
+            awayScore: revealedGameComplete.officialTotals.away.runs,
+            homeScore: revealedGameComplete.officialTotals.home.runs
+        };
+    }
+
     return { awayScore, homeScore };
 }
 function getSpoilerFreeHitsErrors() {
@@ -1221,9 +1255,10 @@ function getSpoilerFreeHitsErrors() {
             }
         }
 
+        const explicitErrorText = /\b(?:fielding|throwing) error\b/i.test(String(event.text || ""));
         if (
             event.eventType === "field_error" ||
-            event.text.toLowerCase().includes("error")
+            explicitErrorText
         ) {
             if (event.battingSide === "away") {
                 homeErrors++;
@@ -1232,6 +1267,19 @@ function getSpoilerFreeHitsErrors() {
             }
         }
     });
+
+    const revealedGameComplete = revealedIndexes
+        .map(index => events[index])
+        .find(event => event?.kind === "game-complete");
+
+    if (revealedGameComplete?.officialTotals) {
+        return {
+            awayHits: revealedGameComplete.officialTotals.away.hits,
+            homeHits: revealedGameComplete.officialTotals.home.hits,
+            awayErrors: revealedGameComplete.officialTotals.away.errors,
+            homeErrors: revealedGameComplete.officialTotals.home.errors
+        };
+    }
 
     return {
         awayHits,
@@ -1496,6 +1544,7 @@ function addEventCard(index) {
     }
 
     if (event.kind === "game-complete") {
+        row.style.setProperty("--winner-color", event.winnerColor || "#002D62");
         const details = event.details;
         const pitchCountHtml = details.pitchCounts.map(team => `
             <section class="pitch-count-team">
