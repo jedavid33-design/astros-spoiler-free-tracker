@@ -885,7 +885,7 @@ button:focus-visible,
     box-shadow:
         inset 1px 1px 1px color-mix(in srgb, var(--active-team-color) 25%, #fff),
         inset -1px -1px 1px color-mix(in srgb, var(--active-team-color) 58%, #000),
-        0 0 0 2px #d1d5db,
+        0 0 0 2px var(--active-team-color),
         0 1px 2px color-mix(in srgb, var(--active-team-color) 25%, transparent);
 }
 
