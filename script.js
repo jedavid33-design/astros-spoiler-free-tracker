@@ -366,11 +366,6 @@ function buildEvents(data) {
 
             if (!desc) return;
 
-            // Hidden administrative cards still participate in state timing.
-            // Apply any runner movement first so the next visible event gets
-            // the correct post-event bases without exposing the hidden card.
-            applyMovementsThrough(event.index ?? -1);
-
             const lowerDesc = desc.toLowerCase();
             if (HIDDEN_EVENT_DESCRIPTIONS.some(hidden => lowerDesc.includes(hidden))) return;
 
