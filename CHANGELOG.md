@@ -1,3 +1,24 @@
+## v55
+
+- Audit fixes (2026-10-01): every failure path now fails visibly, never with an endless spinner.
+- A1: `loadGame` guards the entire post-fetch region (field access + `buildEvents`) and validates feed shape up front; any malformed MLB feed renders the honest "This game could not be loaded" error.
+- A2: background 15s refetch failures now show a "Couldn't refresh — showing the last loaded data" notice near the status bar plus a "Last updated" timestamp; polling pauses after 20 consecutive failures with a "Reload the page" notice.
+- A3: refetch rebuilds re-derive revealed positions from stable event keys (atBat + pitch + result/challenge flags) instead of trusting raw indices; all revealed-index reads are range-guarded.
+- A4: rapid date toggling can't render a superseded date's slate (request token).
+- A5: all MLB fetches now have a 20s AbortController timeout.
+- A6: the 15s refetch stops once the game is complete instead of re-downloading finished games forever.
+- A7: a game with no play data (not started / postponed / canceled) shows "No play data available for this game yet" instead of a 0-0 scoreboard.
+- A8: changelog/version drift repaired (see v53/v54 below).
+- Bumped browser assets to `script.js?v=55` and `style.css?v=28`.
+
+## v54
+
+- Cache-key bump only (`script.js?v=54`, `style.css?v=27`); no changelog entry was recorded at the time.
+
+## v53
+
+- Cache-key bump only (`script.js?v=53`); no changelog entry was recorded at the time.
+
 ## v52
 
 - Added fixed display-color overrides for the two clubs whose normal colors can disappear against the tracker UI: Yankees always render black (`#000000`) and White Sox render visible silver/gray (`#B8C2CC`).

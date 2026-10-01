@@ -1,4 +1,4 @@
-# Astros Spoiler-Free Tracker v47
+# Astros Spoiler-Free Tracker v55
 
 A static, deployable build of Julie's Astros-first, spoiler-free MLB game tracker.
 
@@ -42,5 +42,12 @@ Run the included regression suite with Node.js:
 ```sh
 node tests/regression.test.js
 ```
+
+## WPBL_2026_Apple_Compatible.ics
+
+This `.ics` file is **not app data** — no code in this repo references it. It is a
+static calendar import for Julie's phone (a duplicate of the copy in the
+wpbl-spoiler-free-tracker repo, kept here so it's easy to find and re-import).
+Safe to replace or delete without affecting the tracker.
 
 See `CHANGELOG.md` and `CALIBRATION_NOTES.md` for implementation details.

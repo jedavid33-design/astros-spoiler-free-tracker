@@ -178,6 +178,24 @@ button:hover {
     line-height: 1.5;
 }
 
+.refresh-notice {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: #FFF3CD;
+    color: #664D03;
+    border: 1px solid #FFDE9C;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.last-updated {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+}
+
 #batterInfo {
     display: block;
     width: 100%;

@@ -81,6 +81,29 @@ let selectedScheduleGame = null;
 let selectedGameTeamColors = new Map();
 let absChallengeEnabled = false;
 
+// Network guard: every MLB fetch gets an abort timeout so a hung connection
+// can never leave the UI on "Loading..." forever (A5).
+const FETCH_TIMEOUT_MS = 20000;
+// Background refetch: after this many consecutive failures the interval stops
+// instead of polling a dead endpoint forever (A2).
+const MAX_CONSECUTIVE_REFRESH_FAILURES = 20;
+
+let liveRefreshInterval = null;
+let consecutiveRefreshFailures = 0;
+// Request token so a superseded date's slate response never renders under a
+// newer date's header when the user taps dates quickly (A4).
+let slateRequestToken = 0;
+
+async function fetchWithTimeout(url, options = {}) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    try {
+        return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+        clearTimeout(timeoutId);
+    }
+}
+
 function setGameDate(newDate) {
     GAME_DATE = newDate;
     events = [];
@@ -196,18 +219,23 @@ function renderGameSlate(games) {
 }
 
 async function loadGameSlate() {
+    const requestToken = ++slateRequestToken;
     const slate = document.getElementById("gameSlate");
     slate.innerHTML = '<p class="slate-message">Loading MLB games...</p>';
     document.getElementById("gameDate").value = GAME_DATE;
 
     try {
         const scheduleUrl = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${GAME_DATE}&hydrate=broadcasts(all),venue`;
-        const response = await fetch(scheduleUrl);
+        const response = await fetchWithTimeout(scheduleUrl);
         if (!response.ok) throw new Error(`Schedule request failed (${response.status})`);
         const data = await response.json();
+        // A newer date request already started — this response is stale.
+        if (requestToken !== slateRequestToken) return;
         currentSlateGames = (data.dates?.[0]?.games || []).map(normalizeScheduleGame);
         renderGameSlate(currentSlateGames);
     } catch (error) {
+        // A newer request is already in flight; let it own the UI.
+        if (requestToken !== slateRequestToken) return;
         console.error(error);
         slate.innerHTML = '<p class="slate-message">The MLB schedule could not be loaded. Please try again.</p>';
     }
@@ -240,10 +268,11 @@ function loadPickedDate() {
 
 async function loadGame(askResume = true) {
     if (askResume) {
-    document.getElementById("status").innerHTML = "Loading game...";
-    document.getElementById("batterInfo").innerHTML = "";
-    document.getElementById("eventList").innerHTML = "";
-}
+        document.getElementById("status").innerHTML = "Loading game...";
+        document.getElementById("batterInfo").innerHTML = "";
+        document.getElementById("eventList").innerHTML = "";
+    }
+    hideRefreshNotice();
 
     const scheduledGame = selectedScheduleGame;
     const gamePk = currentGamePk;
@@ -252,62 +281,204 @@ async function loadGame(askResume = true) {
     const feedUrl =
         `https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`;
 
-    let feedData;
     try {
-        const feedResponse = await fetch(feedUrl);
+        const feedResponse = await fetchWithTimeout(feedUrl);
         if (!feedResponse.ok) throw new Error(`Game feed request failed (${feedResponse.status})`);
-        feedData = await feedResponse.json();
-    } catch (error) {
-        console.error(error);
-        if (askResume) document.getElementById("status").innerHTML = "This game could not be loaded. Please try again.";
-        return;
-    }
+        const feedData = await feedResponse.json();
 
-currentGameData = feedData;
-currentGamePk = gamePk;
-currentGameBroadcasts = scheduledGame.broadcasts || [];
+        // Validate the feed shape up front: a 200 with a renamed/missing
+        // section must fail visibly, never strand the user on
+        // "Loading game..." forever (A1).
+        const awayTeam = feedData.gameData?.teams?.away;
+        const homeTeam = feedData.gameData?.teams?.home;
+        if (!awayTeam?.teamName || !homeTeam?.teamName) {
+            throw new Error("Malformed game feed: team data missing");
+        }
+        if (!Array.isArray(feedData.liveData?.plays?.allPlays)) {
+            throw new Error("Malformed game feed: plays data missing");
+        }
 
-awayTeamName = feedData.gameData.teams.away.teamName;
-homeTeamName = feedData.gameData.teams.home.teamName;
-awayTeamId = feedData.gameData.teams.away.id;
-homeTeamId = feedData.gameData.teams.home.id;
-selectedGameTeamColors = selectGameTeamColors(awayTeamId, homeTeamId);
-    
-    buildEvents(feedData);
-    if (LOCATION_DEBUG_MODE) {
-        document.getElementById("locationDebugExport").classList.remove("hidden");
-    }
+        // Snapshot pre-rebuild revealed events by stable key so a refetch can
+        // re-derive positions instead of trusting raw indices (A3).
+        const previousRevealedKeys = askResume
+            ? null
+            : revealedIndexes.map(index => eventStableKey(events[index]));
 
-    const includesAstros = awayTeamId === ASTROS_TEAM_ID || homeTeamId === ASTROS_TEAM_ID;
-    const legacySaveKey = includesAstros ? `astros-tracker-${GAME_DATE}` : null;
-    const saved = localStorage.getItem(SAVE_KEY) || (legacySaveKey ? localStorage.getItem(legacySaveKey) : null);
+        currentGameData = feedData;
+        currentGamePk = gamePk;
+        currentGameBroadcasts = scheduledGame.broadcasts || [];
 
-if (askResume && saved) {
-    const resume = confirm("Resume saved progress for this game?");
+        awayTeamName = awayTeam.teamName;
+        homeTeamName = homeTeam.teamName;
+        awayTeamId = awayTeam.id;
+        homeTeamId = homeTeam.id;
+        selectedGameTeamColors = selectGameTeamColors(awayTeamId, homeTeamId);
 
-        if (resume) {
-            try {
-                const parsed = JSON.parse(saved);
+        buildEvents(feedData);
 
-                if (Array.isArray(parsed)) {
-                    revealedIndexes = parsed;
-                    redrawFeed();
-                    return;
+        if (!askResume) {
+            revalidateRevealedIndexes(previousRevealedKeys);
+        }
+
+        // A game whose feed carries no play data (not started, postponed,
+        // canceled) gets an honest empty state — never a 0-0 scoreboard (A7).
+        if (events.length === 0) {
+            renderNoPlayDataState();
+            updateLastUpdated();
+            manageLiveRefresh();
+            return;
+        }
+
+        if (LOCATION_DEBUG_MODE) {
+            document.getElementById("locationDebugExport").classList.remove("hidden");
+        }
+
+        const includesAstros = awayTeamId === ASTROS_TEAM_ID || homeTeamId === ASTROS_TEAM_ID;
+        const legacySaveKey = includesAstros ? `astros-tracker-${GAME_DATE}` : null;
+        const saved = localStorage.getItem(SAVE_KEY) || (legacySaveKey ? localStorage.getItem(legacySaveKey) : null);
+
+        if (askResume && saved) {
+            const resume = confirm("Resume saved progress for this game?");
+
+            if (resume) {
+                try {
+                    const parsed = JSON.parse(saved);
+
+                    if (Array.isArray(parsed)) {
+                        revealedIndexes = parsed.filter(index =>
+                            Number.isInteger(index) && index >= 0 && index < events.length);
+                        redrawFeed();
+                        updateLastUpdated();
+                        consecutiveRefreshFailures = 0;
+                        manageLiveRefresh();
+                        return;
+                    }
+                } catch {
+                    localStorage.removeItem(SAVE_KEY);
                 }
-            } catch {
-                localStorage.removeItem(SAVE_KEY);
             }
         }
-    }
 
-    updateStatus();
+        updateStatus();
+        updateLastUpdated();
+        consecutiveRefreshFailures = 0;
+        manageLiveRefresh();
+    } catch (error) {
+        console.error(error);
+        if (askResume) {
+            document.getElementById("status").innerHTML = "This game could not be loaded. Please try again.";
+        } else {
+            // Background refetch must never fail silently: say so, keep the
+            // last good snapshot visible, and stop polling a dead endpoint (A2).
+            handleBackgroundRefreshFailure();
+        }
+    }
+}
+
+function renderNoPlayDataState() {
+    document.getElementById("status").innerHTML =
+        '<p class="slate-message">No play data available for this game yet. It may not have started.</p>';
+    document.getElementById("batterInfo").innerHTML = "Check back later.";
+}
+
+function showRefreshNotice(message) {
+    const notice = document.getElementById("refreshNotice");
+    if (!notice) return;
+    notice.textContent = message;
+    notice.classList.remove("hidden");
+}
+
+function hideRefreshNotice() {
+    const notice = document.getElementById("refreshNotice");
+    if (!notice) return;
+    notice.textContent = "";
+    notice.classList.add("hidden");
+}
+
+function updateLastUpdated() {
+    const element = document.getElementById("lastUpdated");
+    if (!element) return;
+    element.textContent = "Last updated " + new Intl.DateTimeFormat("en-US", {
+        hour: "numeric", minute: "2-digit", second: "2-digit"
+    }).format(new Date());
+}
+
+function handleBackgroundRefreshFailure() {
+    consecutiveRefreshFailures += 1;
+    if (consecutiveRefreshFailures >= MAX_CONSECUTIVE_REFRESH_FAILURES) {
+        stopLiveRefresh();
+        showRefreshNotice("Live updates paused — couldn't reach MLB after several tries. Reload the page to try again.");
+        return;
+    }
+    showRefreshNotice("Couldn't refresh — showing the last loaded data.");
+}
+
+function isGameComplete() {
+    return events.some(event => event.kind === "game-complete");
+}
+
+function startLiveRefresh() {
+    stopLiveRefresh();
+    liveRefreshInterval = setInterval(() => {
+        if (GAME_DATE && !document.getElementById("trackerView").classList.contains("hidden")) {
+            loadGame(false);
+        }
+    }, 15000);
+}
+
+function stopLiveRefresh() {
+    if (liveRefreshInterval !== null) {
+        clearInterval(liveRefreshInterval);
+        liveRefreshInterval = null;
+    }
+}
+
+// Stop (or restart) the 15s refetch: finished games are never re-downloaded
+// forever; live/pregame games keep polling (A6).
+function manageLiveRefresh() {
+    if (isGameComplete()) {
+        stopLiveRefresh();
+        return;
+    }
+    startLiveRefresh();
+}
+
+// Stable identity for an event that survives a refetch rebuild even if MLB
+// corrects (removes/reorders) plays — positions alone would silently shift (A3).
+function eventStableKey(event) {
+    if (!event) return null;
+    if (event.kind === "game-complete") return "game-complete";
+    return `${event.atBat ?? "?"}|${event.pitchNumber ?? "x"}|${event.isResult ? "R" : ""}|${event.isChallengeResult ? "C" : ""}`;
+}
+
+function revalidateRevealedIndexes(previousKeys) {
+    if (!Array.isArray(previousKeys)) {
+        revealedIndexes = revealedIndexes.filter(index =>
+            Number.isInteger(index) && index >= 0 && index < events.length);
+        return;
+    }
+    const keyToIndex = new Map();
+    events.forEach((event, index) => {
+        const key = eventStableKey(event);
+        if (key && !keyToIndex.has(key)) keyToIndex.set(key, index);
+    });
+    revealedIndexes = previousKeys
+        .map(key => (key == null ? undefined : keyToIndex.get(key)))
+        .filter(index => index !== undefined);
+    // Defensive: never leave a dangling position behind.
+    revealedIndexes = revealedIndexes.filter(index =>
+        Number.isInteger(index) && index >= 0 && index < events.length);
 }
 
 function buildEvents(data) {
     events = [];
+    // Fail loudly on a shape-changed feed instead of throwing deep inside the
+    // play loop (A1). loadGame catches this and shows the honest error state.
+    const plays = data?.liveData?.plays?.allPlays;
+    if (!Array.isArray(plays)) {
+        throw new Error("Malformed game feed: plays.allPlays is missing");
+    }
     absChallengeEnabled = isABSChallengeGame(data);
-
-    const plays = data.liveData.plays.allPlays;
     let occupiedBases = { first: null, second: null, third: null };
     let challengeState = absChallengeEnabled
         ? { away: ABS_INITIAL_CHALLENGES, home: ABS_INITIAL_CHALLENGES }
@@ -1201,6 +1372,7 @@ function getSpoilerFreeScore() {
 
     revealedIndexes.forEach(index => {
         const event = events[index];
+        if (!event) return;
 
         if (
             event.awayScore !== undefined &&
@@ -1239,6 +1411,7 @@ function getSpoilerFreeHitsErrors() {
 
     revealedIndexes.forEach(index => {
         const event = events[index];
+        if (!event) return;
 
         if (!event.eventType) return;
 
@@ -1288,6 +1461,7 @@ function getPitcherPitchCount(pitcherName) {
 
     revealedIndexes.forEach(index => {
         const event = events[index];
+        if (!event) return;
 
         if (
             event.pitcher === pitcherName &&
@@ -1309,6 +1483,10 @@ function getDisplayState() {
     }
 
     const current = events[currentIndex];
+    // A refetch that returns fewer events than the revealed position must not
+    // throw on undefined (A3). revalidateRevealedIndexes normally prevents
+    // this; this guard is the backstop.
+    if (!current) return null;
     const next = events[currentIndex + 1];
     if (current.isResult && next && next.kind !== "game-complete") {
         return { event: next, preview: true, previous: current };
@@ -1385,6 +1563,12 @@ function getBattingQueue(event) {
 }
 
 function updateStatus() {
+    // Never render a 0-0 scoreboard for a game with no play data (A7).
+    if (events.length === 0) {
+        renderNoPlayDataState();
+        return;
+    }
+
     const currentIndex = getCurrentIndex();
 const score = getSpoilerFreeScore();
 const totals = getSpoilerFreeHitsErrors();
@@ -1955,8 +2139,8 @@ document.getElementById("todayLabel").textContent = new Intl.DateTimeFormat("en-
 document.getElementById("gameDate").value = getLocalDate();
 document.addEventListener("DOMContentLoaded", () => loadToday());
 
-setInterval(() => {
-    if (GAME_DATE && !document.getElementById("trackerView").classList.contains("hidden")) {
-        loadGame(false);
-    }
-}, 15000);
+// The 15s live refetch is managed per game via manageLiveRefresh(), called
+// after each successful loadGame(): it starts the interval when a game view
+// is active, keeps polling for live/pregame games, and stops once the game
+// is complete or the feed has failed repeatedly (A2/A6). Nothing starts
+// polling before a game is selected.
