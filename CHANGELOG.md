@@ -1,3 +1,14 @@
+## Spoiler-free error tally fix · 2026-10-09
+
+- Count separately described fielding/throwing errors within the same revealed
+  play result rather than awarding at most one error for the entire play.
+  On May 27, 2021, Báez's FC with E3 (Craig) and E2 (Pérez) now adds two
+  Pirates errors, one per fielder, without waiting for final-game totals.
+- Preserve fallback of one error when MLB supplies only the field_error event
+  type with no explicit named fielding/throwing error description.
+- No changes to pitches, scored runs, game history, spoiler reveal boundaries,
+  or live refresh behavior.
+
 ## v55
 
 - Audit fixes (2026-10-01): every failure path now fails visibly, never with an endless spinner.

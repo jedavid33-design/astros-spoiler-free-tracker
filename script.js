@@ -1423,15 +1423,18 @@ function getSpoilerFreeHitsErrors() {
             }
         }
 
-        const explicitErrorText = /\b(?:fielding|throwing) error\b/i.test(String(event.text || ""));
-        if (
-            event.eventType === "field_error" ||
-            explicitErrorText
-        ) {
+        // One MLB result can contain more than one error (e.g. Báez's
+        // 2021-05-27 FC: Will Craig E3, then Michael Pérez E2). Count each
+        // explicit fielding/throwing error exactly once in the revealed result.
+        // If the feed gives only a generic field_error type, count one.
+        const describedErrors = (String(event.text || "")
+            .match(/\b(?:fielding|throwing) error\b/gi) || []).length;
+        const errorCount = describedErrors || (event.eventType === "field_error" ? 1 : 0);
+        if (errorCount) {
             if (event.battingSide === "away") {
-                homeErrors++;
+                homeErrors += errorCount;
             } else {
-                awayErrors++;
+                awayErrors += errorCount;
             }
         }
     });
