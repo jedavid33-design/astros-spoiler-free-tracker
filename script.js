@@ -1428,7 +1428,7 @@ function getSpoilerFreeHitsErrors() {
         // explicit fielding/throwing error exactly once in the revealed result.
         // If the feed gives only a generic field_error type, count one.
         const describedErrors = (String(event.text || "")
-            .match(/\b(?:fielding|throwing) error\b/gi) || []).length;
+            .match(/\b(?:fielding|throwing|missed catch) error\b/gi) || []).length;
         const errorCount = describedErrors || (event.eventType === "field_error" ? 1 : 0);
         if (errorCount) {
             if (event.battingSide === "away") {
