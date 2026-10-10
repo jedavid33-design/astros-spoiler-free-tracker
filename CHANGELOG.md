@@ -1,3 +1,9 @@
+## v56 · 2026-10-10
+
+- Fixed an event-timing bug that kept the base diamond stale after a mid-plate-appearance stolen base. Runner movements with an MLB playIndex now update the diamond at their own event rather than waiting for the plate appearance result.
+- Preserved the next-pitch state, caught-stealing outs, and hidden feed-event transitions. Runner movements without a playIndex still wait for the play result to avoid revealing future outcomes.
+- Added a Node regression suite and GitHub Actions run covering mid-at-bat steals, caught stealing, hidden events and spoiler-free deferred moves (20 checks).
+
 ## Spoiler-free error tally fix · 2026-10-09
 
 - Count separately described fielding/throwing/missed-catch errors within the same revealed
