@@ -1,0 +1,14 @@
+name: Astros tracker regressions
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  tracker-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out tracker
+        uses: actions/checkout@v4
+      - name: Test tracker state handling
+        run: node tests/regression.test.js
