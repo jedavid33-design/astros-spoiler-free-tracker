@@ -526,13 +526,22 @@ function buildEvents(data) {
             pendingMovements.forEach(({ runnerIndex }) => appliedMovements.add(runnerIndex));
         }
 
-        play.playEvents.forEach(event => {
+        play.playEvents.forEach((event, eventPosition) => {
             const countBeforeEvent = { ...previousFeedCount };
             previousFeedCount = {
                 balls: event.count?.balls ?? previousFeedCount.balls,
                 strikes: event.count?.strikes ?? previousFeedCount.strikes,
                 outs: event.count?.outs ?? previousFeedCount.outs
             };
+
+            // Apply runner moves at their actual feed index, not only when the
+            // plate appearance ends. A mid-at-bat steal must update the bases
+            // on the steal event and on every subsequent pitch. Do this even
+            // for hidden/no-description events so the next visible snapshot
+            // remains correct. Moves without a playIndex stay deferred until
+            // the completed-play result, preventing spoilers from future action.
+            applyMovementsThrough(event.index ?? eventPosition);
+
             const desc = event.details?.description;
 
             if (!desc) return;
